@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --green: #00C49A;
+    --green-dark: #2C97B7;
+    --mint: #e8f5ee;
+    --orange: #45ABD1;
+    --ink: #1A2433;
+    --paper: #F4F6F8;
+    --line: #A0AAB2;
+    --muted: #6C757D;
+    --red: #8B1E1E;
+
+    --background: 210 16% 95%; /* Light Main bg #F4F6F8 */
+    --foreground: 215 32% 15%; /* Primary Dark Text #1A2433 */
+    --card: 0 0% 100%; /* White #FFFFFF */
+    --card-foreground: 215 32% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 32% 15%;
+    --primary: 167 100% 38%; /* Mint #00C49A */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 193 61% 45%; /* Teal #2C97B7 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 208 7% 46%; /* Muted Text #6C757D */
+    --muted-foreground: 208 7% 46%;
+    --accent: 196 61% 54%; /* Blue #45ABD1 */
+    --accent-foreground: 215 32% 15%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 207 11% 66%; /* Border light #A0AAB2 */
+    --input: 207 11% 66%;
+    --ring: 167 100% 38%;
+    --radius: 0.75rem;
+  }
+}
+
+.dark-portal {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(167,100%,88%,0.4) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(193,61%,88%,0.45) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(196,61%,85%,0.3) 0, transparent 50%);
+  background-attachment: fixed;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Cyber-grid background pattern - faint dark lines for light background */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(26, 36, 51, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26, 36, 51, 0.03) 1px, transparent 1px);
+}
+
+/* Glassmorphism containers - Light theme glass */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(160, 170, 178, 0.2);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 196, 154, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 196, 154, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Glowing text and borders */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(135deg, #00C49A 0%, #2C97B7 50%, #45ABD1 100%);
+}
+
+.text-gradient-cyan {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(135deg, #00C49A 0%, #2C97B7 100%);
+}
+
+.glow-border-active {
+  border-color: #00C49A;
+  box-shadow: 0 0 15px rgba(0, 196, 154, 0.25);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(244, 246, 248, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 196, 154, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 196, 154, 0.4);
+}
+
+/* Radar-scanner animation for AI loading */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-radar-1 {
+  animation: radar-pulse 3s infinite linear;
+}
+
+.animate-radar-2 {
+  animation: radar-pulse 3s infinite linear 1.5s;
+}
+
+/* Custom glow effect */
+.glow-effect {
+  position: relative;
+}
+
+.glow-effect::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #00C49A, #2C97B7, #45ABD1);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glow-effect:hover::after {
+  opacity: 1;
+}
