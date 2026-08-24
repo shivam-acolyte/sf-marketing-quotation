@@ -48,9 +48,9 @@ export function getMockAIAnalysis(
   const industry = findAnswerValue(answers, ['2', 'industry', 'type_of_business'], ['type', 'industry', 'sector', 'operate']) || 'General Business';
   const size = findAnswerValue(answers, ['3', 'business_size', 'stage'], ['size', 'employee', 'stage']) || 'Growing';
   const websiteStatus = findAnswerValue(answers, ['4', 'website', 'active_website'], ['website', 'site']) || 'No - We do not have a website';
-  const location = findAnswerValue(answers, ['8', 'target_location', 'location'], ['location', 'audience', 'geography']) || 'National';
   const budget = findAnswerValue(answers, ['9', 'budget', 'monthly_budget'], ['budget', 'spend', 'investment']) || '₹25,000 – ₹50,000';
   const timeline = findAnswerValue(answers, ['10', 'timeline', 'start_date'], ['timeline', 'start', 'time']) || 'Within 1 month';
+  const businessDesc = answers.business_description || '';
 
   // Extract primary goals
   const rawGoals = findAnswerValue(answers, ['7', 'goals', 'primary_goals'], ['goal', 'objective', 'target']) || [];
@@ -122,7 +122,7 @@ export function getMockAIAnalysis(
           { name: 'Weekly post comment replies monitoring', price_modifier: 1500, description: 'Algorithm boost by reply moderation on posts.', selected: false }
         );
       }
-    } 
+    }
     else if (serviceName.includes('paid ads') || serviceName.includes('google ads') || serviceName.includes('meta ads')) {
       if (goalsStr.includes('sales') || goalsStr.includes('conversion') || industryFocus === 'ecommerce') {
         reason = `Direct-response Meta & Google shopping ad funnels are selected to capture high-intent buyers, driving immediate transaction volume and scaling store sales.`;
@@ -145,7 +145,7 @@ export function getMockAIAnalysis(
           { name: 'Landing Page Conversion Rate CRO audit', price_modifier: 2000, description: 'Detailed visual evaluation and load-speed optimization recommendations.', selected: false }
         );
       }
-    } 
+    }
     else if (serviceName.includes('seo')) {
       if (industryFocus === 'saas' || industryFocus === 'b2b_service') {
         reason = `B2B research starts on Google. Ranking organically for primary intent keywords will drive sustainable, high-authority monthly inbound leads.`;
@@ -168,7 +168,7 @@ export function getMockAIAnalysis(
           { name: 'Local city-targeted keywords injection', price_modifier: 1500, description: 'Adapt text pages to target city-wide search phrases.', selected: true }
         );
       }
-    } 
+    }
     else if (serviceName.includes('website')) {
       const needsRedesign = String(websiteStatus).toLowerCase().includes('needs') || String(websiteStatus).toLowerCase().includes('redesign');
       const noWeb = String(websiteStatus).toLowerCase().includes('no') || String(websiteStatus).toLowerCase().includes('do not');
@@ -199,28 +199,28 @@ export function getMockAIAnalysis(
           { name: 'Floating WhatsApp direct link button', price_modifier: 500, description: 'A floating bubble button redirecting clients to chat.', selected: true }
         );
       }
-    } 
+    }
     else if (serviceName.includes('logo') || serviceName.includes('branding')) {
       reason = `A premium, modern logo and cohesive brand assets establish instant market authority, ensuring you look like an industry leader from day one.`;
       options.push(
         { name: 'Typography suite & brand color guidelines', price_modifier: 1500, description: 'Defines typography weights and brand colors for print/web.', selected: true },
         { name: 'Stationery template package', price_modifier: 2500, description: 'Designs for business cards, invoices, and letterheads.', selected: false }
       );
-    } 
+    }
     else if (serviceName.includes('security')) {
       reason = `Proactive domain security, SSL certificates, and WHOIS privacy protect your brand reputation, prevent costly downtime, and build customer check-out trust.`;
       options.push(
         { name: 'Cloudflare CDN & advanced firewall setup', price_modifier: 3000, description: 'Setup caching, DNS protection, and DDoS filter shield.', selected: true },
         { name: 'Automated database daily backup rotation', price_modifier: 2000, description: 'Configure daily database backups to cloud backup vaults.', selected: true }
       );
-    } 
+    }
     else if (serviceName.includes('google business') || serviceName.includes('gmb')) {
       reason = `Optimizing your Google Business Profile is critical for local search prominence, helping nearby buyers find your location and read reviews.`;
       options.push(
         { name: 'Local citation registry directories listings', price_modifier: 2000, description: 'Submit matching details to top 15 maps citation directories.', selected: true },
         { name: 'Maps review QR code flyer builder', price_modifier: 1500, description: 'Create a custom print flyer template with scan link.', selected: false }
       );
-    } 
+    }
     else {
       reason = `Highly recommended service to support your marketing operations and accelerate your ${industry} business growth goals.`;
       options.push(
@@ -265,7 +265,9 @@ export function getMockAIAnalysis(
   }
 
   return {
-    business_summary: `${businessName} is a ${size} company operating in the ${industry} sector, focusing on ${industryPhrase}.`,
+    business_summary: businessDesc 
+      ? `${businessName} is a ${size} company operating in the ${industry} sector, described as: "${businessDesc}".`
+      : `${businessName} is a ${size} company operating in the ${industry} sector, focusing on ${industryPhrase}.`,
     primary_goals: primary_goals.length > 0 ? primary_goals : ['Generate leads and scale brand presence'],
     recommended_services: serviceAnalysis,
     strategy_summary,
@@ -295,52 +297,143 @@ export async function analyzeRequirements(
     const recommendedIds = ruleRecommendedServices.map((s) => s.id);
 
     const prompt = `
-You are a strategic digital marketing analyst.
-Analyze the following customer requirements and generate a personalized marketing analysis and service recommendation.
+You are a strategic digital marketing analyst responsible for creating a personalized service recommendation for a customer.
 
-CUSTOMER ANSWERS:
+Your job is to analyze the customer's answers, use the available services database, and produce a practical marketing recommendation.
+
+## CUSTOMER ANSWERS
 ${JSON.stringify(answers, null, 2)}
 
-AVAILABLE SERVICES IN OUR DATABASE:
+## AVAILABLE SERVICES
 ${servicesListText}
 
-SERVICES ALREADY DETERMINED BY RULES:
-Service IDs: ${JSON.stringify(recommendedIds)}
+## SERVICES REQUIRED BY BUSINESS RULES
+${JSON.stringify(recommendedIds)}
 
-TASK:
-1. Provide a professional 'business_summary' (1-2 sentences summarizing their business, size, industry, and core presence).
-2. Summarize their 'primary_goals' based on their answers.
-3. Recommend suitable services. You MUST recommend the services that are already determined by rules (Service IDs: ${JSON.stringify(recommendedIds)}). You can recommend extra services from our database list if they fit, but you must NOT invent services that are not in the list.
-4. For each recommended service, provide a personalized, customer-friendly 'reason' explaining exactly why it benefits their specific business.
-5. For each recommended service, you MUST also generate 2-3 customizable 'options' (sub-packages or specific deliverables) relevant to their industry. Each option must have a:
-   - "name": String name of the deliverable (e.g. "Meta Catalog Feed Sync Setup")
-   - "price_modifier": Number (an additional cost, between 500 and 5000, or 0 if included)
-   - "description": String describing the option
-   - "selected": Boolean (default true/false indicating recommendation level)
-6. Provide a cohesive 'strategy_summary' (2-3 sentences outlining the overall tactical strategy).
-7. Set the campaign implementation 'priority' (must be 'high', 'medium', or 'low').
+## INSTRUCTIONS
 
-RESPONSE FORMAT:
-You MUST respond with a single JSON object. Follow this TypeScript structure exactly:
+### 1. Business Summary
+Create a professional 1–2 sentence summary covering, when available:
+- Business type/industry
+- Business size or stage
+- Target audience
+- Current digital presence
+- Key business context
+
+If a 'business_description' (for example: "ye biscuit ki company hai" or "ham log online clothes bechte hain") is present in CUSTOMER ANSWERS, you MUST base your summary, overall strategy, and specific service options directly on their actual business product/activities (e.g. mention baking, biscuits, or clothing retail specifically). Do not invent information that is not present in the customer answers.
+
+### 2. Primary Goals
+Identify the customer's most important marketing/business goals from their answers.
+
+Return 2–5 concise goals. Prioritize explicit goals over inferred goals.
+
+### 3. Recommended Services
+Recommend services ONLY from the AVAILABLE SERVICES list.
+
+Rules:
+- Every service ID in SERVICES REQUIRED BY BUSINESS RULES MUST be included.
+- You may add other services only when clearly justified by the customer's answers.
+- NEVER invent a service or service ID.
+- NEVER recommend a service that does not exist in AVAILABLE SERVICES.
+- Do not duplicate service IDs.
+- Use the exact service_id from the database.
+- Recommendations must be specific to the customer's industry, business stage, audience, and goals.
+
+### 4. Service Reason
+For every recommended service, provide a concise, customer-friendly reason explaining:
+- Why the service is relevant
+- What business problem it addresses
+- How it supports the customer's stated goals
+
+Avoid generic statements such as "this will improve your marketing."
+
+### 5. Service Options
+For EVERY recommended service, generate exactly 2–3 relevant customizable options.
+
+Each option must contain:
+
+{
+  "name": "Specific deliverable or sub-package",
+  "price_modifier": 0,
+  "description": "Clear description of what is included",
+  "selected": true
+}
+
+Rules for options:
+- Options must be relevant to the customer's industry and goals.
+- If a 'business_description' is present in CUSTOMER ANSWERS, customize option names and descriptions to fit their specific product/service (e.g. "UGC shoot showing cookie crunch" for a biscuit company, or "Shopify dress catalog curation" for clothing retail).
+- Make options progressively different in scope where appropriate.
+- \`price_modifier\` must be a number between 500 and 5000, or 0 when included in the base service.
+- Do not invent unrealistic or unrelated deliverables.
+- \`selected: true\` means strongly recommended for this customer.
+- \`selected: false\` means useful but optional.
+- At least one option should normally be selected.
+- Do not include currency symbols in \`price_modifier\`.
+
+### 6. Strategy Summary
+Create a cohesive 2–3 sentence tactical strategy explaining:
+- What should be done first
+- How the recommended services work together
+- What outcome the overall strategy is intended to achieve
+
+The strategy should reflect the customer's actual goals rather than generic marketing advice.
+
+### 7. Priority
+Set implementation priority based on urgency, business goals, current presence, and expected impact.
+
+Allowed values ONLY:
+- "high"
+- "medium"
+- "low"
+
+Use:
+- "high" when the customer has urgent growth/acquisition needs or major digital gaps.
+- "medium" when marketing improvements are important but not immediately critical.
+- "low" when the customer has an established presence and goals are primarily optimization/long-term growth.
+
+## DATA SAFETY RULES
+
+- Use only information provided in CUSTOMER ANSWERS.
+- Use only services present in AVAILABLE SERVICES.
+- Never invent service IDs.
+- Never invent customer facts.
+- Never invent existing marketing activities unless explicitly stated.
+- If information is missing, make the recommendation conservatively rather than guessing.
+- Prefer fewer highly relevant additional services over many weak recommendations.
+
+## OUTPUT RULES
+
+Return ONLY one valid JSON object.
+
+Do not include:
+- Markdown
+- Code fences
+- Explanations outside the JSON
+- Comments
+- Additional fields
+- Trailing commas
+
+The output MUST follow this exact structure:
+
 {
   "business_summary": "string",
   "primary_goals": ["string"],
   "recommended_services": [
     {
-      "service_id": number,
-      "reason": "string explaining why this service fits",
+      "service_id": 123,
+      "reason": "string",
       "options": [
         {
           "name": "string",
-          "price_modifier": number,
+          "price_modifier": 0,
           "description": "string",
-          "selected": boolean
+          "selected": true
         }
       ]
     }
   ],
   "strategy_summary": "string",
-  "priority": "high" | "medium" | "low"
+  "priority": "high"
 }
 `;
 

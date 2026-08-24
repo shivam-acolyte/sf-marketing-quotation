@@ -3,6 +3,149 @@ import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-p
 import { getAugmentedAnswers } from './answers';
 import { prisma } from '@/lib/db';
 
+const allServiceKeys = ['gmb','web','ecomm','wa','smm','linkedin','content','seo','ads','infl','logo','pitch','orm'];
+
+const INDUSTRY_RELEVANCE: Record<string, Record<string, number>> = {
+  ecommerce:     {smm:8, linkedin:3, ads:9, seo:8, web:5, ecomm:9, content:6, wa:7, infl:6, gmb:5, logo:6, pitch:3, orm:6},
+  d2c:           {smm:9, linkedin:3, ads:8, seo:6, web:5, ecomm:8, content:8, wa:6, infl:9, gmb:3, logo:7, pitch:3, orm:6},
+  services:      {smm:5, linkedin:9, ads:6, seo:8, web:8, ecomm:1, content:6, wa:7, infl:2, gmb:9, logo:6, pitch:9, orm:8},
+  manufacturing: {smm:3, linkedin:8, ads:4, seo:7, web:8, ecomm:1, content:5, wa:6, infl:1, gmb:6, logo:5, pitch:8, orm:5},
+  fnb:           {smm:9, linkedin:2, ads:6, seo:4, web:5, ecomm:2, content:7, wa:6, infl:7, gmb:9, logo:6, pitch:2, orm:9},
+  healthcare:    {smm:4, linkedin:6, ads:5, seo:8, web:8, ecomm:1, content:6, wa:7, infl:2, gmb:9, logo:6, pitch:5, orm:9},
+  education:     {smm:6, linkedin:6, ads:6, seo:7, web:7, ecomm:2, content:8, wa:7, infl:3, gmb:5, logo:6, pitch:6, orm:7},
+  realestate:    {smm:6, linkedin:7, ads:7, seo:7, web:8, ecomm:1, content:5, wa:8, infl:3, gmb:9, logo:6, pitch:7, orm:8},
+  other:         {smm:5, linkedin:5, ads:5, seo:5, web:5, ecomm:2, content:5, wa:5, infl:5, gmb:5, logo:5, pitch:5, orm:5},
+};
+
+const GOAL_BOOST: Record<string, Record<string, number>> = {
+  awareness: {smm:3, content:3, infl:2, linkedin:2, orm:1},
+  leads:     {ads:3, wa:3, seo:1, pitch:3, linkedin:2},
+  sales:     {ads:3, seo:2, web:1, ecomm:3, pitch:2},
+  social:    {smm:3, infl:3, linkedin:2},
+  traffic:   {seo:3, content:2, ads:1},
+};
+
+const STAGE_BOOST: Record<string, Record<string, number>> = {
+  new:         {content:2, web:2, gmb:1, logo:3, pitch:2},
+  growing:     {ads:1, seo:1, orm:1},
+  established: {ads:2, seo:1, orm:2, linkedin:1},
+};
+
+const resolveWebsiteConflict = (list: string[], scores: Record<string, number>): string[] => {
+  if (list.includes('web') && list.includes('ecomm')) {
+    const drop = (scores.web || 0) >= (scores.ecomm || 0) ? 'ecomm' : 'web';
+    return list.filter(k => k !== drop);
+  }
+  return list;
+};
+
+const REVERSE_MAPPINGS: Record<string, string> = {
+  'Social Media Management – Basic (1 Month)': 'smm',
+  'LinkedIn / B2B Social Marketing': 'linkedin',
+  'Paid Ads Management – Silver (Basic Package)': 'ads',
+  'SEO – 2 Months': 'seo',
+  'Website – Basic (5-Page)': 'web',
+  'E-commerce Website / Store': 'ecomm',
+  'Content Creation & Marketing': 'content',
+  'WhatsApp Marketing & Green Tick': 'wa',
+  'Influencer Marketing': 'infl',
+  'Google Business Profile Optimization': 'gmb',
+  'Logo Design – Standard': 'logo',
+  'Pitch Deck / Business PPT Preparation': 'pitch',
+  'Online Reputation Management (ORM)': 'orm',
+  'Dedicated Account Manager': 'dam',
+  'Advanced Analytics & Reporting': 'analytics',
+  'Paid Ads — Setup Fee (Basic)': 'adsSetupBasic',
+  'Paid Ads — Setup Fee (Premium)': 'adsSetupPremium',
+  'Domain Security & SSL': 'domainSecurity'
+};
+
+const getDynamicServiceName = (serviceKey: string, industry: string): string => {
+  if (serviceKey === 'smm') {
+    if (industry === 'ecommerce' || industry === 'd2c') return "E-commerce Instagram/Facebook Reels & UGC Validation";
+    if (industry === 'realestate') return "Property Virtual Tour Video Editing & Instagram Reels";
+    if (industry === 'fnb') return "Food & Beverage Instagram Reels & Diners Stories Posting";
+    return "Social Media Curation & Brand Profile Management";
+  }
+  if (serviceKey === 'linkedin') {
+    return "LinkedIn / B2B Social Marketing";
+  }
+  if (serviceKey === 'ads') {
+    if (industry === 'ecommerce' || industry === 'd2c') return "Meta Shopping Ads & Google E-commerce funnels";
+    if (industry === 'realestate') return "Property Virtual Tour Video Editing & Instagram Reels"; // standard real estate ads
+    if (industry === 'services' || industry === 'manufacturing') return "B2B LinkedIn & Google Search intent ads";
+    if (industry === 'education') return "Admissions Lead Acquisition targeted Meta campaigns";
+    return "Paid Ads campaigns (Meta / Google Search)";
+  }
+  if (serviceKey === 'web') {
+    if (industry === 'ecommerce' || industry === 'd2c') return "Shopify / WooCommerce Online Store development";
+    if (industry === 'healthcare') return "Clinic Appointment Booking responsive Website";
+    if (industry === 'education') return "Course Registration & Student admissions Portal";
+    if (industry === 'services') return "Professional Services Lead Capture landing page";
+    return "Custom responsive Website Development";
+  }
+  if (serviceKey === 'ecomm') {
+    return "E-commerce Website / Online Store";
+  }
+  if (serviceKey === 'seo') {
+    if (industry === 'ecommerce' || industry === 'd2c') return "Product & Collection page SEO Ranking search optimization";
+    if (industry === 'healthcare' || industry === 'fnb') return "Local Doctor / Restaurant organic search positioning";
+    return "Google organic Search rankings SEO Audit & cleanup";
+  }
+  if (serviceKey === 'content') {
+    if (industry === 'services' || industry === 'manufacturing') return "B2B Blogs copywriting & Corporate whitepapers";
+    if (industry === 'education') return "Curriculum guides writing & Student info sheets copywriting";
+    return "Brand Marketing Copywriting & graphic creatives design";
+  }
+  if (serviceKey === 'gmb') {
+    if (industry === 'healthcare') return "Clinic Google maps ranking & local patient reviews setup";
+    if (industry === 'fnb') return "Restaurant Google Business maps search verification & photos upload";
+    return "Google Business Profile Local Search Optimization";
+  }
+  if (serviceKey === 'logo') {
+    if (industry === 'realestate') return "Premium Real Estate brand logo & listing watermark design";
+    return "Corporate brand Logo design & branding assets";
+  }
+  if (serviceKey === 'pitch') {
+    return "Pitch Deck / Business PPT Preparation";
+  }
+  if (serviceKey === 'orm') {
+    return "Online Reputation Management (ORM)";
+  }
+  if (serviceKey === 'domain') {
+    if (industry === 'ecommerce' || industry === 'd2c') return "Store Check-out Security, SSL lock & payment safety auditing";
+    return "Domain Protection, WHOIS privacy & Cloudflare integration";
+  }
+  if (serviceKey === 'infl') {
+    if (industry === 'ecommerce' || industry === 'd2c') return "Direct D2C Brand Influencer UGC deals sourcing";
+    if (industry === 'fnb') return "Local Food Bloggers review campaign invitations setup";
+    return "Micro-Influencer Outreach campaigns listing";
+  }
+  
+  const defaults: Record<string, string> = {
+    smm: "Social Media Management (Instagram/FB)",
+    linkedin: "LinkedIn / B2B Social Marketing",
+    ads: "Google / Meta Ads Management",
+    seo: "SEO",
+    web: "Business Website (5-page)",
+    ecomm: "E-commerce Website / Store",
+    content: "Content Creation",
+    wa: "WhatsApp Marketing & Green Tick",
+    infl: "Influencer Marketing",
+    gmb: "Google Business Profile Optimization",
+    logo: "Logo & Brand Identity Design",
+    pitch: "Pitch Deck / Business PPT Preparation",
+    orm: "Online Reputation Management (ORM)",
+    dam: "Dedicated Account Manager",
+    analytics: "Advanced Analytics & Reporting",
+    adsSetupBasic: "Paid Ads — Setup Fee",
+    adsSetupPremium: "Paid Ads — Setup Fee",
+    domainSecurity: "Domain Security & SSL"
+  };
+  return defaults[serviceKey] || serviceKey;
+};
+
+
 // Define Styles for PDF Document - Matching startupflora HTML Design
 const styles = StyleSheet.create({
   page: {
@@ -572,75 +715,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// Industry wise dynamic service names
-const getDynamicServiceName = (serviceKey: string, industry: string): string => {
-  if (serviceKey === 'smm') {
-    if (industry === 'ecommerce') return "E-commerce IG/FB Reels & UGC Validation";
-    if (industry === 'realestate') return "Property Virtual Tour Video Editing & IG Reels";
-    if (industry === 'fnb') return "Food & Beverage IG Reels Posting";
-    return "Social Media Curation & Brand Profile Management";
-  }
-  if (serviceKey === 'ads') {
-    if (industry === 'ecommerce') return "Meta Shopping Ads & Google Shopping funnels";
-    if (industry === 'realestate') return "Meta Local Lead Generation Ads";
-    if (industry === 'services') return "B2B LinkedIn & Google Search intent ads";
-    if (industry === 'education') return "Admissions Lead Acquisition Meta campaigns";
-    return "Paid Ads campaigns (Meta / Google Search)";
-  }
-  if (serviceKey === 'web') {
-    if (industry === 'ecommerce') return "Shopify / WooCommerce Store development";
-    if (industry === 'healthcare') return "Clinic Appointment Booking responsive Website";
-    if (industry === 'education') return "Course Registration & Admissions Portal";
-    if (industry === 'services') return "Professional Services Lead Capture landing page";
-    return "Custom responsive Website Development";
-  }
-  if (serviceKey === 'seo') {
-    if (industry === 'ecommerce') return "Product & Collection page SEO search optimization";
-    if (industry === 'healthcare' || industry === 'fnb') return "Local Doctor / Restaurant search positioning";
-    return "Google organic Search rankings SEO Audit & cleanup";
-  }
-  if (serviceKey === 'content') {
-    if (industry === 'services') return "B2B Blogs copywriting & Corporate whitepapers";
-    if (industry === 'education') return "Curriculum guides writing & copywriting";
-    return "Brand Marketing Copywriting & graphic creatives design";
-  }
-  if (serviceKey === 'gmb') {
-    if (industry === 'healthcare') return "Clinic Google maps ranking & patient reviews";
-    if (industry === 'fnb') return "Restaurant Google Business maps verification";
-    return "Google Business Profile Local Search Optimization";
-  }
-  if (serviceKey === 'logo') {
-    if (industry === 'realestate') return "Premium Real Estate brand logo design";
-    return "Corporate brand Logo design & branding assets";
-  }
-  if (serviceKey === 'domain') {
-    if (industry === 'ecommerce') return "Store Check-out Security & SSL lock auditing";
-    return "Domain Protection & Cloudflare integration";
-  }
-  if (serviceKey === 'wa') {
-    if (industry === 'realestate' || industry === 'services') return "WhatsApp Auto-reply Scheduling & API Green Tick";
-    return "WhatsApp Marketing Broadcast & Auto-responder rules";
-  }
-  if (serviceKey === 'infl') {
-    if (industry === 'ecommerce') return "Direct D2C Brand Influencer UGC deals sourcing";
-    if (industry === 'fnb') return "Local Food Bloggers review campaign setup";
-    return "Micro-Influencer Outreach campaigns listing";
-  }
-  
-  const defaults: Record<string, string> = {
-    smm: "Social Media Management",
-    ads: "Paid Ads Management",
-    seo: "SEO Optimization",
-    web: "Website Development",
-    content: "Content Creation & Marketing",
-    wa: "WhatsApp Marketing & Green Tick",
-    infl: "Influencer Marketing",
-    gmb: "Google Business Profile Optimization",
-    logo: "Logo Design",
-    domain: "Domain Security & Protection"
-  };
-  return defaults[serviceKey] || serviceKey;
-};
+
 
 interface PDFQuotationProps {
   quotation: {
@@ -716,103 +791,152 @@ const QuotationDocument: React.FC<PDFQuotationProps> = ({ quotation, questions, 
   else if (stageStr.includes('established') || stageStr.includes('large') || stageStr.includes('mature')) stage = 'established';
 
   let goal = 'awareness';
-  const goalStr = Array.isArray(rawGoal) ? String(rawGoal[0]).toLowerCase() : String(rawGoal).toLowerCase();
-  if (goalStr.includes('awareness') || goalStr.includes('visibility')) goal = 'awareness';
-  else if (goalStr.includes('lead')) goal = 'leads';
-  else if (goalStr.includes('sales') || goalStr.includes('conversion')) goal = 'sales';
-  else if (goalStr.includes('social') || goalStr.includes('growth')) goal = 'social';
-  else if (goalStr.includes('traffic') || goalStr.includes('clicks')) goal = 'traffic';
+  let secondaryGoal = 'none';
+  let tertiaryGoal = 'none';
+
+  const mapGoalStr = (str: string): string => {
+    const s = str.toLowerCase();
+    if (s.includes('awareness') || s.includes('visibility') || s.includes('presence')) return 'awareness';
+    if (s.includes('lead')) return 'leads';
+    if (s.includes('sales') || s.includes('conversion')) return 'sales';
+    if (s.includes('social') || s.includes('growth')) return 'social';
+    if (s.includes('traffic') || s.includes('clicks')) return 'traffic';
+    return 'awareness';
+  };
+
+  if (Array.isArray(rawGoal)) {
+    if (rawGoal.length > 0) goal = mapGoalStr(rawGoal[0]);
+    if (rawGoal.length > 1) secondaryGoal = mapGoalStr(rawGoal[1]);
+    if (rawGoal.length > 2) tertiaryGoal = mapGoalStr(rawGoal[2]);
+  } else if (typeof rawGoal === 'string' && rawGoal) {
+    const mapped = mapGoalStr(rawGoal);
+    if (mapped) {
+      goal = answers.goal || mapped;
+      secondaryGoal = answers.secondaryGoal || 'none';
+      tertiaryGoal = answers.tertiaryGoal || 'none';
+    }
+  } else {
+    goal = answers.goal || 'awareness';
+    secondaryGoal = answers.secondaryGoal || 'none';
+    tertiaryGoal = answers.tertiaryGoal || 'none';
+  }
 
   // Generate dynamic prices based on DB services min prices
-  const basePrices: Record<string, number> = {
+  const basePrices = {
     smm: 20000,
-    ads: 30000,
-    seo: 30000,
+    linkedin: 15000,
+    ads: 35000,
+    seo: 18000,
     web: 20000,
+    ecomm: 90000,
     content: 8000,
     wa: 5000,
-    infl: 15000,
-    gmb: 5000,
-    logo: 8000,
-    domain: 3000
+    infl: 10000,
+    gmb: 4000,
+    logo: 15000,
+    pitch: 15000,
+    orm: 8000,
+    dam: 8000,
+    analytics: 5000,
+    adsSetupBasic: 2000,
+    adsSetupPremium: 5000,
+    domainSecurity: 25000,
   };
 
   servicesList.forEach(s => {
-    const keyName = s.name.toLowerCase();
-    if (keyName.includes('social') || keyName.includes('smm')) basePrices.smm = Number(s.minPrice);
-    else if (keyName.includes('paid ads') || keyName.includes('meta')) basePrices.ads = Number(s.minPrice);
-    else if (keyName.includes('seo')) basePrices.seo = Number(s.minPrice);
-    else if (keyName.includes('website') || keyName.includes('web')) basePrices.web = Number(s.minPrice);
-    else if (keyName.includes('content')) basePrices.content = Number(s.minPrice);
-    else if (keyName.includes('whatsapp') || keyName.includes('wa')) basePrices.wa = Number(s.minPrice);
-    else if (keyName.includes('influencer')) basePrices.infl = Number(s.minPrice);
-    else if (keyName.includes('maps') || keyName.includes('profile') || keyName.includes('gmb')) basePrices.gmb = Number(s.minPrice);
-    else if (keyName.includes('logo')) basePrices.logo = Number(s.minPrice);
-    else if (keyName.includes('domain') || keyName.includes('security')) basePrices.domain = Number(s.minPrice);
+    const key = REVERSE_MAPPINGS[s.name];
+    if (key) {
+      basePrices[key as keyof typeof basePrices] = Number(s.minPrice);
+    }
   });
 
-  const coreServiceKeys = () => {
-    const matched = new Set<string>();
-    if (ind === 'ecommerce') {
-      matched.add('ads'); matched.add('smm'); matched.add('domain');
-    } else if (ind === 'services') {
-      matched.add('seo'); matched.add('content'); matched.add('wa');
-    } else if (ind === 'realestate') {
-      matched.add('smm'); matched.add('ads'); matched.add('logo'); matched.add('wa');
-    } else if (ind === 'fnb') {
-      matched.add('gmb'); matched.add('smm'); matched.add('logo');
-    } else if (ind === 'healthcare') {
-      matched.add('gmb'); matched.add('web'); matched.add('domain');
-    } else if (ind === 'education') {
-      matched.add('web'); matched.add('ads'); matched.add('content');
-    } else {
-      matched.add('smm'); matched.add('web'); matched.add('gmb');
-    }
+  const getScoredServices = () => {
+    const websiteVal = String(answers['4'] || '').toLowerCase();
+    const instagramVal = String(answers['5'] || '').toLowerCase();
+    const gmbVal = String(answers['6'] || '').toLowerCase();
 
-    if (stage === 'new') {
-      matched.add('logo'); matched.add('web');
-    } else if (stage === 'growing') {
-      matched.add('ads'); matched.add('wa');
-    } else if (stage === 'established') {
-      matched.add('seo'); matched.add('domain'); matched.add('infl');
-    }
+    const hasWebsite = websiteVal.includes('yes') || websiteVal.includes('already');
+    const hasSocial = instagramVal.includes('yes') || instagramVal.includes('already');
+    const hasGMB = gmbVal.includes('yes') || gmbVal.includes('already');
+    const startingFromZero = !hasWebsite && !hasSocial && !hasGMB;
 
-    if (goal === 'awareness') { matched.add('smm'); matched.add('content'); }
-    if (goal === 'leads') { matched.add('ads'); matched.add('wa'); }
-    if (goal === 'sales') { matched.add('ads'); if (ind === 'ecommerce') matched.add('domain'); else matched.add('seo'); }
-    if (goal === 'social') { matched.add('smm'); matched.add('infl'); }
-    if (goal === 'traffic') { matched.add('seo'); matched.add('content'); }
+    const presenceAdj: Record<string, number> = {};
+    const bump = (k: string, v: number) => { 
+      presenceAdj[k] = (presenceAdj[k] || 0) + v; 
+    };
+    if (!hasWebsite) { bump('web', 3); bump('ecomm', 3); } else { bump('web', -2); bump('ecomm', -2); }
+    if (!hasSocial) { bump('smm', 2); bump('linkedin', 1); } else { bump('smm', -1); bump('linkedin', -1); }
+    if (!hasGMB) bump('gmb', 3); else bump('gmb', -2);
+    if (startingFromZero) { bump('web', 1); bump('gmb', 1); bump('smm', 1); bump('logo', 2); }
 
-    const priorityOrder = ['gmb', 'web', 'logo', 'wa', 'smm', 'content', 'seo', 'ads', 'infl', 'domain'];
-    return [...matched].sort((a, b) => priorityOrder.indexOf(a) - priorityOrder.indexOf(b));
+    const goalBoostHighest = GOAL_BOOST[goal] || {};
+    const goalBoostSec = GOAL_BOOST[secondaryGoal] || {};
+    const goalBoostTert = GOAL_BOOST[tertiaryGoal] || {};
+    const stageBoost = STAGE_BOOST[stage] || {};
+    const industryScore = INDUSTRY_RELEVANCE[ind] || INDUSTRY_RELEVANCE.other;
+
+    const scores: Record<string, number> = {};
+    allServiceKeys.forEach(k => {
+      const highestModifier = goalBoostHighest[k] || 0;
+      const secModifier = goalBoostSec[k] || 0;
+      const tertModifier = goalBoostTert[k] || 0;
+      
+      const modifiers = (stageBoost[k] || 0) + (presenceAdj[k] || 0) + 
+                        highestModifier + (secModifier * 0.35) + (tertModifier * 0.35);
+
+      const score = industryScore[k] * 0.7 + modifiers * 0.5;
+      scores[k] = Math.round(score * 10) / 10;
+    });
+
+    return scores;
   };
 
-  const coreList = coreServiceKeys();
-  const lowCount = Math.max(2, Math.ceil(coreList.length / 2));
-  const lowList = coreList.slice(0, lowCount);
-  const mediumList = coreList.slice();
-  const priorityOrderList = ['gmb', 'web', 'logo', 'wa', 'smm', 'content', 'seo', 'ads', 'infl', 'domain'];
-  const remaining = priorityOrderList.filter(k => !coreList.includes(k));
-  const highList = coreList.concat(remaining.slice(0, 2));
+  const scores = getScoredServices();
+
+  const CAT: Record<string, { name: string; type: string; base: number }> = {
+    smm:      { name: getDynamicServiceName('smm', ind),     type: "monthly",  base: basePrices.smm },
+    linkedin: { name: getDynamicServiceName('linkedin', ind),type: "monthly",  base: basePrices.linkedin },
+    ads:      { name: getDynamicServiceName('ads', ind),     type: "monthly",  base: basePrices.ads },
+    seo:      { name: getDynamicServiceName('seo', ind),     type: "monthly",  base: basePrices.seo },
+    web:      { name: getDynamicServiceName('web', ind),     type: "onetime",  base: basePrices.web },
+    ecomm:    { name: getDynamicServiceName('ecomm', ind),   type: "onetime",  base: basePrices.ecomm },
+    content:  { name: getDynamicServiceName('content', ind), type: "monthly",  base: basePrices.content },
+    wa:       { name: getDynamicServiceName('wa', ind),      type: "onetime",  base: basePrices.wa },
+    infl:     { name: getDynamicServiceName('infl', ind),    type: "monthly",  base: basePrices.infl },
+    gmb:      { name: getDynamicServiceName('gmb', ind),     type: "onetime",  base: basePrices.gmb },
+    logo:     { name: getDynamicServiceName('logo', ind),    type: "onetime",  base: basePrices.logo },
+    pitch:    { name: getDynamicServiceName('pitch', ind),   type: "onetime",  base: basePrices.pitch },
+    orm:      { name: getDynamicServiceName('orm', ind),     type: "monthly",  base: basePrices.orm },
+    dam:      { name: getDynamicServiceName('dam', ind),     type: "monthly",  base: basePrices.dam },
+    analytics:{ name: getDynamicServiceName('analytics', ind),type: "monthly",  base: basePrices.analytics },
+    adsSetupBasic:   { name: getDynamicServiceName('adsSetupBasic', ind),  type: "onetime",  base: basePrices.adsSetupBasic },
+    adsSetupPremium: { name: getDynamicServiceName('adsSetupPremium', ind),type: "onetime",  base: basePrices.adsSetupPremium },
+    domainSecurity:  { name: getDynamicServiceName('domainSecurity', ind), type: "onetime",  base: basePrices.domainSecurity },
+  };
+
+  const ranked = allServiceKeys.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+
+  let lowList = ranked.filter(k => (scores[k] || 0) >= 7).slice(0, 3);
+  if (lowList.length < 2) lowList = ranked.slice(0, 2);
+  lowList = resolveWebsiteConflict(lowList, scores);
+
+  let mediumList = ranked.filter(k => (scores[k] || 0) >= 5).slice(0, 5);
+  if (mediumList.length < lowList.length) mediumList = lowList.slice();
+  mediumList = Array.from(new Set(lowList.concat(mediumList)));
+  mediumList = resolveWebsiteConflict(mediumList, scores);
+
+  let highList = ranked.filter(k => (scores[k] || 0) >= 3).slice(0, 7);
+  highList = Array.from(new Set(mediumList.concat(highList)));
+  if (highList.length <= mediumList.length && ranked.length > mediumList.length) {
+    highList = Array.from(new Set(mediumList.concat(ranked.slice(0, mediumList.length + 2))));
+  }
+  highList = resolveWebsiteConflict(highList, scores);
 
   const multipliers = { low: 0.85, medium: 1.0, high: 1.25 };
 
-  const CAT: Record<string, { name: string; type: string; base: number }> = {
-    smm:     { name: getDynamicServiceName('smm', ind),     type: "monthly",  base: basePrices.smm },
-    ads:     { name: getDynamicServiceName('ads', ind),     type: "monthly",  base: basePrices.ads },
-    seo:     { name: getDynamicServiceName('seo', ind),     type: "monthly",  base: basePrices.seo },
-    web:     { name: getDynamicServiceName('web', ind),     type: "onetime",  base: basePrices.web },
-    content: { name: getDynamicServiceName('content', ind), type: "monthly",  base: basePrices.content },
-    wa:      { name: getDynamicServiceName('wa', ind),      type: "onetime",  base: basePrices.wa },
-    infl:    { name: getDynamicServiceName('infl', ind),    type: "monthly",  base: basePrices.infl },
-    gmb:     { name: getDynamicServiceName('gmb', ind),     type: "onetime",  base: basePrices.gmb },
-    logo:    { name: getDynamicServiceName('logo', ind),    type: "onetime",  base: basePrices.logo },
-    domain:  { name: getDynamicServiceName('domain', ind),  type: "onetime",  base: basePrices.domain },
-  };
-
-  const getPlanDetails = (key: 'low' | 'medium' | 'high', keys: string[]) => {
+  const getPlanDetails = (key: 'low' | 'medium' | 'high', serviceKeys: string[]) => {
     const m = multipliers[key];
-    const items = keys.map(k => {
+    const items = serviceKeys.map(k => {
       const s = CAT[k];
       return {
         name: s.name,
@@ -820,6 +944,36 @@ const QuotationDocument: React.FC<PDFQuotationProps> = ({ quotation, questions, 
         price: Math.round((s.base * m) / 100) * 100
       };
     });
+
+    if (key === 'high') {
+      const highAddons = ['dam', 'analytics'];
+      highAddons.forEach(k => {
+        const s = CAT[k];
+        items.push({
+          name: s.name,
+          type: s.type,
+          price: Math.round(s.base / 100) * 100
+        });
+      });
+    }
+
+    if (serviceKeys.includes('ads')) {
+      const setupKey = key === 'high' ? 'adsSetupPremium' : 'adsSetupBasic';
+      const s = CAT[setupKey];
+      items.push({
+        name: s.name,
+        type: s.type,
+        price: Math.round(s.base / 100) * 100
+      });
+    }
+    if (key === 'high' && (serviceKeys.includes('web') || serviceKeys.includes('ecomm'))) {
+      const s = CAT.domainSecurity;
+      items.push({
+        name: s.name,
+        type: s.type,
+        price: Math.round(s.base / 100) * 100
+      });
+    }
 
     let monthly = 0;
     let onetime = 0;
@@ -884,13 +1038,20 @@ const QuotationDocument: React.FC<PDFQuotationProps> = ({ quotation, questions, 
             <View style={styles.clientTags}>
               <Text style={[styles.tag, styles.tagIndustry]}>{rawIndustry}</Text>
               <Text style={[styles.tag, styles.tagStatus]}>{rawStage}</Text>
-              <Text style={[styles.tag, styles.tagGoal]}>{Array.isArray(rawGoal) ? rawGoal.join(', ') : rawGoal}</Text>
+              <Text style={[styles.tag, styles.tagGoal]}>
+                {[
+                  goal === 'awareness' ? 'Brand Awareness' : goal === 'leads' ? 'Lead Generation' : goal === 'sales' ? 'Sales / Conversions' : goal === 'social' ? 'Social Media Growth' : 'Website Traffic',
+                  secondaryGoal !== 'none' && (secondaryGoal === 'awareness' ? 'Brand Awareness' : secondaryGoal === 'leads' ? 'Lead Generation' : secondaryGoal === 'sales' ? 'Sales / Conversions' : secondaryGoal === 'social' ? 'Social Media Growth' : 'Website Traffic'),
+                  tertiaryGoal !== 'none' && (tertiaryGoal === 'awareness' ? 'Brand Awareness' : tertiaryGoal === 'leads' ? 'Lead Generation' : tertiaryGoal === 'sales' ? 'Sales / Conversions' : tertiaryGoal === 'social' ? 'Social Media Growth' : 'Website Traffic')
+                ].filter(Boolean).join(', ')}
+              </Text>
             </View>
           </View>
           <View style={styles.projectDetails}>
             <Text style={styles.clientHeader}>Project Overview</Text>
             <Text style={styles.projectDetailsText}>
               {quotation.assessment?.aiAnalysis?.business_summary || 
+               answers.businessDescription || 
                "Comprehensive digital marketing strategy covering local optimizations, active social campaigns, content copywriting, and paid advertising tunnels to accelerate growth."}
             </Text>
           </View>

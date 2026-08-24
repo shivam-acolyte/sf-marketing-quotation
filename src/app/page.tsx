@@ -32,77 +32,46 @@ const stageLabels: Record<string, string> = {
 
 
 
-const allServiceKeys = ['gmb', 'web', 'wa', 'smm', 'content', 'seo', 'ads', 'infl'];
+const allServiceKeys = ['gmb','web','ecomm','wa','smm','linkedin','content','seo','ads','infl','logo','pitch','orm'];
 
 const INDUSTRY_RELEVANCE: Record<string, Record<string, number>> = {
-  ecommerce:     {smm:8, ads:9, seo:8, web:8, content:6, wa:7, infl:6, gmb:5},
-  d2c:           {smm:9, ads:8, seo:6, web:7, content:8, wa:6, infl:9, gmb:3},
-  services:      {smm:5, ads:6, seo:8, web:8, content:6, wa:7, infl:2, gmb:9},
-  manufacturing: {smm:3, ads:4, seo:7, web:8, content:5, wa:6, infl:1, gmb:6},
-  fnb:           {smm:9, ads:6, seo:4, web:5, content:7, wa:6, infl:7, gmb:9},
-  healthcare:    {smm:4, ads:5, seo:8, web:8, content:6, wa:7, infl:2, gmb:9},
-  education:     {smm:6, ads:6, seo:7, web:7, content:8, wa:7, infl:3, gmb:5},
-  realestate:    {smm:6, ads:7, seo:7, web:8, content:5, wa:8, infl:3, gmb:9},
-  other:         {smm:5, ads:5, seo:5, web:5, content:5, wa:5, infl:5, gmb:5},
+  ecommerce:     {smm:8, linkedin:3, ads:9, seo:8, web:5, ecomm:9, content:6, wa:7, infl:6, gmb:5, logo:6, pitch:3, orm:6},
+  d2c:           {smm:9, linkedin:3, ads:8, seo:6, web:5, ecomm:8, content:8, wa:6, infl:9, gmb:3, logo:7, pitch:3, orm:6},
+  services:      {smm:5, linkedin:9, ads:6, seo:8, web:8, ecomm:1, content:6, wa:7, infl:2, gmb:9, logo:6, pitch:9, orm:8},
+  manufacturing: {smm:3, linkedin:8, ads:4, seo:7, web:8, ecomm:1, content:5, wa:6, infl:1, gmb:6, logo:5, pitch:8, orm:5},
+  fnb:           {smm:9, linkedin:2, ads:6, seo:4, web:5, ecomm:2, content:7, wa:6, infl:7, gmb:9, logo:6, pitch:2, orm:9},
+  healthcare:    {smm:4, linkedin:6, ads:5, seo:8, web:8, ecomm:1, content:6, wa:7, infl:2, gmb:9, logo:6, pitch:5, orm:9},
+  education:     {smm:6, linkedin:6, ads:6, seo:7, web:7, ecomm:2, content:8, wa:7, infl:3, gmb:5, logo:6, pitch:6, orm:7},
+  realestate:    {smm:6, linkedin:7, ads:7, seo:7, web:8, ecomm:1, content:5, wa:8, infl:3, gmb:9, logo:6, pitch:7, orm:8},
+  other:         {smm:5, linkedin:5, ads:5, seo:5, web:5, ecomm:2, content:5, wa:5, infl:5, gmb:5, logo:5, pitch:5, orm:5},
 };
 
 const GOAL_BOOST: Record<string, Record<string, number>> = {
-  awareness: {smm:3, content:3, infl:2},
-  leads:     {ads:3, wa:3, seo:1},
-  sales:     {ads:3, seo:2, web:1},
-  social:    {smm:3, infl:3},
+  awareness: {smm:3, content:3, infl:2, linkedin:2, orm:1},
+  leads:     {ads:3, wa:3, seo:1, pitch:3, linkedin:2},
+  sales:     {ads:3, seo:2, web:1, ecomm:3, pitch:2},
+  social:    {smm:3, infl:3, linkedin:2},
   traffic:   {seo:3, content:2, ads:1},
 };
 
 const STAGE_BOOST: Record<string, Record<string, number>> = {
-  new:         {content:2, web:2, gmb:1},
-  growing:     {ads:1, seo:1},
-  established: {ads:2, seo:1},
+  new:         {content:2, web:2, gmb:1, logo:3, pitch:2},
+  growing:     {ads:1, seo:1, orm:1},
+  established: {ads:2, seo:1, orm:2, linkedin:1},
 };
 
-const getDynamicServiceScope = (serviceKey: string, goal: string, tier: 'low' | 'medium' | 'high'): string => {
-  const tierLabel = tier === 'low' ? 'Starter' : tier === 'medium' ? 'Standard' : 'Premium';
-  
-  if (serviceKey === 'smm') {
-    if (goal === 'awareness') return `${tierLabel}: Organic brand aesthetics cleanup, page optimization, and initial awareness posts.`;
-    if (goal === 'social') return `${tierLabel}: Custom video reels design, daily stories posting, and audience interaction campaigns.`;
-    return `${tierLabel}: Dynamic graphic templates layout posts, industry update posts, and basic profile curation.`;
+const resolveWebsiteConflict = (list: string[], scores: Record<string, number>): string[] => {
+  if (list.includes('web') && list.includes('ecomm')) {
+    const drop = (scores.web || 0) >= (scores.ecomm || 0) ? 'ecomm' : 'web';
+    return list.filter(k => k !== drop);
   }
-  if (serviceKey === 'ads') {
-    if (goal === 'leads') return `${tierLabel}: B2C/B2B Meta lead capture form configurations, targeted search ads, and conversion optimization.`;
-    if (goal === 'sales') return `${tierLabel}: Dynamic product catalogue setup, shopping campaigns integration, and basket retargeting loops.`;
-    return `${tierLabel}: Audience interest keyword setups, localized search banners creation, and basic CTR metrics dashboard.`;
-  }
-  if (serviceKey === 'seo') {
-    if (goal === 'traffic') return `${tierLabel}: Google indexing audit, fast mobile web speed repairs, and local maps citations listing.`;
-    return `${tierLabel}: Primary industry search keywords insertion, core technical meta titles cleanup, and setup Google Analytics.`;
-  }
-  if (serviceKey === 'web') {
-    if (goal === 'sales') return `${tierLabel}: E-commerce store template installation, secure payment gateway integrations, and check-out testing.`;
-    if (goal === 'leads') return `${tierLabel}: Professional single-page lead capture forms design, contact responders sync, and CTA overlays.`;
-    return `${tierLabel}: Premium fast-loading multi-page responsive design layout, custom styled visual graphics asset placement.`;
-  }
-  if (serviceKey === 'content') {
-    if (goal === 'awareness') return `${tierLabel}: Custom brand marketing caption presets, visual theme assets guidelines, and layout scripts.`;
-    if (goal === 'traffic') return `${tierLabel}: B2B keyword-enriched blogs writing (2 posts), technical guides mapping, and SEO updates.`;
-    return `${tierLabel}: Custom promotional banners layout copy, visual flyer design, and initial email marketing newsletters.`;
-  }
-  if (serviceKey === 'wa') {
-    return `${tierLabel}: WhatsApp Business app configuration, contact forms instant auto-responder rules, and templates layout.`;
-  }
-  if (serviceKey === 'gmb') {
-    return `${tierLabel}: Business maps directory registration, local maps reviews flyer QR setup, and localized map details audit.`;
-  }
-  if (serviceKey === 'logo') {
-    return `${tierLabel}: Startup logo visual assets drafting, high-res print vectors exporting, and brand colors guideline sheet.`;
-  }
-  if (serviceKey === 'domain') {
-    return `${tierLabel}: Domain lock protection audits, SSL certificate mapping, and DNS cloud cache integrations setup.`;
-  }
-  if (serviceKey === 'infl') {
-    return `${tierLabel}: Micro-influencers list sourcing and campaign briefing layout templates.`;
-  }
-  return `${tierLabel} service package deliverables scope.`;
+  return list;
+};
+
+const relevanceTag = (score: number): string => {
+  if (score >= 7) return "High relevance";
+  if (score >= 5) return "Medium relevance";
+  return "Added reach";
 };
 
 const getDynamicServiceName = (serviceKey: string, industry: string): string => {
@@ -111,6 +80,9 @@ const getDynamicServiceName = (serviceKey: string, industry: string): string => 
     if (industry === 'realestate') return "Property Virtual Tour Video Editing & Instagram Reels";
     if (industry === 'fnb') return "Food & Beverage Instagram Reels & Diners Stories Posting";
     return "Social Media Curation & Brand Profile Management";
+  }
+  if (serviceKey === 'linkedin') {
+    return "LinkedIn / B2B Social Marketing";
   }
   if (serviceKey === 'ads') {
     if (industry === 'ecommerce' || industry === 'd2c') return "Meta Shopping Ads & Google E-commerce funnels";
@@ -125,6 +97,9 @@ const getDynamicServiceName = (serviceKey: string, industry: string): string => 
     if (industry === 'education') return "Course Registration & Student admissions Portal";
     if (industry === 'services') return "Professional Services Lead Capture landing page";
     return "Custom responsive Website Development";
+  }
+  if (serviceKey === 'ecomm') {
+    return "E-commerce Website / Online Store";
   }
   if (serviceKey === 'seo') {
     if (industry === 'ecommerce' || industry === 'd2c') return "Product & Collection page SEO Ranking search optimization";
@@ -145,13 +120,15 @@ const getDynamicServiceName = (serviceKey: string, industry: string): string => 
     if (industry === 'realestate') return "Premium Real Estate brand logo & listing watermark design";
     return "Corporate brand Logo design & branding assets";
   }
+  if (serviceKey === 'pitch') {
+    return "Pitch Deck / Business PPT Preparation";
+  }
+  if (serviceKey === 'orm') {
+    return "Online Reputation Management (ORM)";
+  }
   if (serviceKey === 'domain') {
     if (industry === 'ecommerce' || industry === 'd2c') return "Store Check-out Security, SSL lock & payment safety auditing";
     return "Domain Protection, WHOIS privacy & Cloudflare integration";
-  }
-  if (serviceKey === 'wa') {
-    if (industry === 'realestate' || industry === 'services') return "WhatsApp Auto-reply Lead Scheduling & API green tick setup";
-    return "WhatsApp Marketing Broadcast setup & Auto-responder rules";
   }
   if (serviceKey === 'infl') {
     if (industry === 'ecommerce' || industry === 'd2c') return "Direct D2C Brand Influencer UGC deals sourcing";
@@ -160,16 +137,24 @@ const getDynamicServiceName = (serviceKey: string, industry: string): string => 
   }
   
   const defaults: Record<string, string> = {
-    smm: "Social Media Management",
-    ads: "Paid Ads Management (Meta / Google)",
-    seo: "SEO Optimization",
-    web: "Website Development",
-    content: "Content Creation & Marketing",
+    smm: "Social Media Management (Instagram/FB)",
+    linkedin: "LinkedIn / B2B Social Marketing",
+    ads: "Google / Meta Ads Management",
+    seo: "SEO",
+    web: "Business Website (5-page)",
+    ecomm: "E-commerce Website / Store",
+    content: "Content Creation",
     wa: "WhatsApp Marketing & Green Tick",
     infl: "Influencer Marketing",
     gmb: "Google Business Profile Optimization",
-    logo: "Logo Design",
-    domain: "Domain Security & Protection"
+    logo: "Logo & Brand Identity Design",
+    pitch: "Pitch Deck / Business PPT Preparation",
+    orm: "Online Reputation Management (ORM)",
+    dam: "Dedicated Account Manager",
+    analytics: "Advanced Analytics & Reporting",
+    adsSetupBasic: "Paid Ads — Setup Fee",
+    adsSetupPremium: "Paid Ads — Setup Fee",
+    domainSecurity: "Domain Security & SSL"
   };
   return defaults[serviceKey] || serviceKey;
 };
@@ -183,6 +168,8 @@ export default function Home() {
   const [industry, setIndustry] = useState('ecommerce');
   const [stage, setStage] = useState('new');
   const [goal, setGoal] = useState('awareness');
+  const [secondaryGoal, setSecondaryGoal] = useState('none');
+  const [tertiaryGoal, setTertiaryGoal] = useState('none');
   const [presence, setPresence] = useState<string[]>([]);
   const [statedBudget, setStatedBudget] = useState(0);
 
@@ -194,16 +181,24 @@ export default function Home() {
   // Admin Config State
   const [adminOpen, setAdminOpen] = useState(false);
   const [basePrices, setBasePrices] = useState({
-    smm: 20000,   // Social Media Management – Basic (1 Month)
-    ads: 30000,   // Paid Ads Management – Silver (Basic Package)
-    seo: 30000,   // SEO – 2 Months
-    web: 20000,   // Website – Basic (5-Page)
+    smm: 20000,
+    linkedin: 15000,
+    ads: 35000,
+    seo: 18000,
+    web: 20000,
+    ecomm: 90000,
     content: 8000,
     wa: 5000,
     infl: 10000,
     gmb: 4000,
-    logo: 5000,   // Logo Design – Standard
-    domain: 25000, // Domain Security & Protection
+    logo: 15000,
+    pitch: 15000,
+    orm: 8000,
+    dam: 8000,
+    analytics: 5000,
+    adsSetupBasic: 2000,
+    adsSetupPremium: 5000,
+    domainSecurity: 25000,
   });
 
   const [multipliers, setMultipliers] = useState({
@@ -314,18 +309,26 @@ export default function Home() {
     const bump = (k: string, v: number) => { 
       presenceAdj[k] = (presenceAdj[k] || 0) + v; 
     };
-    if (!hasWebsite) bump('web', 3); else bump('web', -2);
-    if (!hasSocial) bump('smm', 2); else bump('smm', -1);
+    if (!hasWebsite) { bump('web', 3); bump('ecomm', 3); } else { bump('web', -2); bump('ecomm', -2); }
+    if (!hasSocial) { bump('smm', 2); bump('linkedin', 1); } else { bump('smm', -1); bump('linkedin', -1); }
     if (!hasGMB) bump('gmb', 3); else bump('gmb', -2);
-    if (startingFromZero) { bump('web', 1); bump('gmb', 1); bump('smm', 1); }
+    if (startingFromZero) { bump('web', 1); bump('gmb', 1); bump('smm', 1); bump('logo', 2); }
 
-    const goalBoost = GOAL_BOOST[goal] || {};
+    const goalBoostHighest = GOAL_BOOST[goal] || {};
+    const goalBoostSec = GOAL_BOOST[secondaryGoal] || {};
+    const goalBoostTert = GOAL_BOOST[tertiaryGoal] || {};
     const stageBoost = STAGE_BOOST[stage] || {};
     const industryScore = INDUSTRY_RELEVANCE[industry] || INDUSTRY_RELEVANCE.other;
 
     const scores: Record<string, number> = {};
     allServiceKeys.forEach(k => {
-      const modifiers = (goalBoost[k] || 0) + (stageBoost[k] || 0) + (presenceAdj[k] || 0);
+      const highestModifier = goalBoostHighest[k] || 0;
+      const secModifier = goalBoostSec[k] || 0;
+      const tertModifier = goalBoostTert[k] || 0;
+      
+      const modifiers = (stageBoost[k] || 0) + (presenceAdj[k] || 0) + 
+                        highestModifier + (secModifier * 0.35) + (tertModifier * 0.35);
+
       const score = industryScore[k] * 0.7 + modifiers * 0.5;
       scores[k] = Math.round(score * 10) / 10;
     });
@@ -346,16 +349,24 @@ export default function Home() {
     const { scores, reason } = getScoredServices();
     
     const CAT: Record<string, { name: string; type: string; base: number }> = {
-      smm:     { name: getDynamicServiceName('smm', industry),     type: "monthly",  base: basePrices.smm },
-      ads:     { name: getDynamicServiceName('ads', industry),     type: "monthly",  base: basePrices.ads },
-      seo:     { name: getDynamicServiceName('seo', industry),     type: "monthly",  base: basePrices.seo },
-      web:     { name: getDynamicServiceName('web', industry),     type: "onetime",  base: basePrices.web },
-      content: { name: getDynamicServiceName('content', industry), type: "monthly",  base: basePrices.content },
-      wa:      { name: getDynamicServiceName('wa', industry),      type: "onetime",  base: basePrices.wa },
-      infl:    { name: getDynamicServiceName('infl', industry),    type: "monthly",  base: basePrices.infl },
-      gmb:     { name: getDynamicServiceName('gmb', industry),     type: "onetime",  base: basePrices.gmb },
-      logo:    { name: getDynamicServiceName('logo', industry),    type: "onetime",  base: basePrices.logo },
-      domain:  { name: getDynamicServiceName('domain', industry),  type: "onetime",  base: basePrices.domain },
+      smm:      { name: getDynamicServiceName('smm', industry),     type: "monthly",  base: basePrices.smm },
+      linkedin: { name: getDynamicServiceName('linkedin', industry),type: "monthly",  base: basePrices.linkedin },
+      ads:      { name: getDynamicServiceName('ads', industry),     type: "monthly",  base: basePrices.ads },
+      seo:      { name: getDynamicServiceName('seo', industry),     type: "monthly",  base: basePrices.seo },
+      web:      { name: getDynamicServiceName('web', industry),     type: "onetime",  base: basePrices.web },
+      ecomm:    { name: getDynamicServiceName('ecomm', industry),   type: "onetime",  base: basePrices.ecomm },
+      content:  { name: getDynamicServiceName('content', industry), type: "monthly",  base: basePrices.content },
+      wa:       { name: getDynamicServiceName('wa', industry),      type: "onetime",  base: basePrices.wa },
+      infl:     { name: getDynamicServiceName('infl', industry),    type: "monthly",  base: basePrices.infl },
+      gmb:      { name: getDynamicServiceName('gmb', industry),     type: "onetime",  base: basePrices.gmb },
+      logo:     { name: getDynamicServiceName('logo', industry),    type: "onetime",  base: basePrices.logo },
+      pitch:    { name: getDynamicServiceName('pitch', industry),   type: "onetime",  base: basePrices.pitch },
+      orm:      { name: getDynamicServiceName('orm', industry),     type: "monthly",  base: basePrices.orm },
+      dam:      { name: getDynamicServiceName('dam', industry),     type: "monthly",  base: basePrices.dam },
+      analytics:{ name: getDynamicServiceName('analytics', industry),type: "monthly",  base: basePrices.analytics },
+      adsSetupBasic:   { name: getDynamicServiceName('adsSetupBasic', industry),  type: "onetime",  base: basePrices.adsSetupBasic },
+      adsSetupPremium: { name: getDynamicServiceName('adsSetupPremium', industry),type: "onetime",  base: basePrices.adsSetupPremium },
+      domainSecurity:  { name: getDynamicServiceName('domainSecurity', industry), type: "onetime",  base: basePrices.domainSecurity },
     };
 
     const ranked = allServiceKeys.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
@@ -363,11 +374,13 @@ export default function Home() {
     // Low Plan: Score >= 7 (minimum 2 services)
     let lowList = ranked.filter(k => (scores[k] || 0) >= 7).slice(0, 3);
     if (lowList.length < 2) lowList = ranked.slice(0, 2);
+    lowList = resolveWebsiteConflict(lowList, scores);
 
     // Medium Plan: Score >= 5 (minimum lowList.length, merged/deduped)
     let mediumList = ranked.filter(k => (scores[k] || 0) >= 5).slice(0, 5);
     if (mediumList.length < lowList.length) mediumList = lowList.slice();
     mediumList = Array.from(new Set(lowList.concat(mediumList)));
+    mediumList = resolveWebsiteConflict(mediumList, scores);
 
     // High Plan: Score >= 3 (minimum mediumList.length + 2, merged/deduped)
     let highList = ranked.filter(k => (scores[k] || 0) >= 3).slice(0, 7);
@@ -375,9 +388,10 @@ export default function Home() {
     if (highList.length <= mediumList.length && ranked.length > mediumList.length) {
       highList = Array.from(new Set(mediumList.concat(ranked.slice(0, mediumList.length + 2))));
     }
+    highList = resolveWebsiteConflict(highList, scores);
 
-    // Keep logo & domain as high plan addons matching the React basePrices structure
-    const highAddons = ['logo', 'domain'];
+    // High plan add-ons
+    const highAddons = ['dam', 'analytics'];
 
     const buildTier = (key: 'low' | 'medium' | 'high', serviceKeys: string[], addonKeys: string[], tagline: string) => {
       const m = multipliers[key];
@@ -388,7 +402,7 @@ export default function Home() {
           name: s.name,
           type: s.type,
           price: s.base * m,
-          scope: getDynamicServiceScope(k, goal, key),
+          scope: relevanceTag(scores[k] || 0),
         };
       });
 
@@ -399,9 +413,32 @@ export default function Home() {
           name: s.name,
           type: s.type,
           price: s.base,
-          scope: "Add-on Support",
+          scope: "Add-on",
         });
       });
+
+      // Companion fees: real one-time costs that ride along with certain services.
+      if (serviceKeys.includes('ads')) {
+        const setupKey = key === 'high' ? 'adsSetupPremium' : 'adsSetupBasic';
+        const s = CAT[setupKey];
+        items.push({
+          key: setupKey,
+          name: s.name,
+          type: s.type,
+          price: s.base,
+          scope: "Required with Paid Ads",
+        });
+      }
+      if (key === 'high' && (serviceKeys.includes('web') || serviceKeys.includes('ecomm'))) {
+        const s = CAT.domainSecurity;
+        items.push({
+          key: 'domainSecurity',
+          name: s.name,
+          type: s.type,
+          price: s.base,
+          scope: "Add-on",
+        });
+      }
 
       let monthly = 0;
       let onetime = 0;
@@ -452,6 +489,9 @@ export default function Home() {
           industry,
           stage,
           goal,
+          secondaryGoal,
+          tertiaryGoal,
+          businessDescription,
           tierName: tierKey.toUpperCase(),
           monthly: p.monthly,
           onetime: p.onetime,
@@ -539,7 +579,8 @@ export default function Home() {
     doc.setFontSize(9);
     doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
     y += 5;
-    const metaLine = [clientCity, industryLabels[industry], stageLabels[stage], goalLabels[goal]].filter(Boolean).join('  ·  ');
+    const goalsList = [goalLabels[goal], secondaryGoal !== 'none' && goalLabels[secondaryGoal], tertiaryGoal !== 'none' && goalLabels[tertiaryGoal]].filter(Boolean).join(' + ');
+    const metaLine = [clientCity, industryLabels[industry], stageLabels[stage], goalsList].filter(Boolean).join('  ·  ');
     doc.text(metaLine, 14, y);
     y += 9;
 
@@ -620,7 +661,7 @@ export default function Home() {
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8.5);
     doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
-    const why = `All three plans are matched to a ${stageLabels[stage].toLowerCase()} ${industryLabels[industry].toLowerCase()} business focused on ${goalLabels[goal].toLowerCase()}. Higher tiers add scope, speed, and dedicated support.`;
+    const why = `All three plans are matched to a ${stageLabels[stage].toLowerCase()} ${industryLabels[industry].toLowerCase()} business focused on ${goalLabels[goal].toLowerCase()}${secondaryGoal !== 'none' ? ', ' + goalLabels[secondaryGoal].toLowerCase() : ''}${tertiaryGoal !== 'none' ? ', and ' + goalLabels[tertiaryGoal].toLowerCase() : ''}. Higher tiers add scope, speed, and dedicated support.`;
     const whyLines = doc.splitTextToSize(why, 182);
     doc.text(whyLines, 14, y);
     y += whyLines.length * 4.5 + 8;
@@ -1304,7 +1345,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="field">
-                <label>Primary goal</label>
+                <label>Primary Goal (Highest Priority)</label>
                 <div className="chip-group">
                   {['awareness', 'leads', 'sales', 'social', 'traffic'].map((opt) => (
                     <button
@@ -1312,6 +1353,50 @@ export default function Home() {
                       type="button"
                       onClick={() => setGoal(opt)}
                       className={`chip single ${goal === opt ? 'on single' : ''}`}
+                    >
+                      {goalLabels[opt]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="field">
+                <label>Secondary Goal (Low Priority)</label>
+                <div className="chip-group">
+                  <button
+                    type="button"
+                    onClick={() => setSecondaryGoal('none')}
+                    className={`chip single ${secondaryGoal === 'none' ? 'on single' : ''}`}
+                  >
+                    None
+                  </button>
+                  {['awareness', 'leads', 'sales', 'social', 'traffic'].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setSecondaryGoal(opt)}
+                      className={`chip single ${secondaryGoal === opt ? 'on single' : ''}`}
+                    >
+                      {goalLabels[opt]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="field">
+                <label>Tertiary Goal (Low Priority)</label>
+                <div className="chip-group">
+                  <button
+                    type="button"
+                    onClick={() => setTertiaryGoal('none')}
+                    className={`chip single ${tertiaryGoal === 'none' ? 'on single' : ''}`}
+                  >
+                    None
+                  </button>
+                  {['awareness', 'leads', 'sales', 'social', 'traffic'].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setTertiaryGoal(opt)}
+                      className={`chip single ${tertiaryGoal === opt ? 'on single' : ''}`}
                     >
                       {goalLabels[opt]}
                     </button>
@@ -1370,14 +1455,36 @@ export default function Home() {
 
               <div className="admin-section-label">Core services</div>
               {[
-                { key: 'smm', label: 'Social Media Management', type: '₹/mo base' },
+                { key: 'smm', label: 'Social Media Management (Instagram/FB)', type: '₹/mo base' },
+                { key: 'linkedin', label: 'LinkedIn / B2B Social Marketing', type: '₹/mo base' },
                 { key: 'ads', label: 'Google / Meta Ads Mgmt', type: '₹/mo base' },
                 { key: 'seo', label: 'SEO', type: '₹/mo base' },
-                { key: 'web', label: 'Website Development', type: '₹ one-time' },
+                { key: 'web', label: 'Business Website (5-page)', type: '₹ one-time' },
+                { key: 'ecomm', label: 'E-commerce Website / Store', type: '₹ one-time' },
                 { key: 'content', label: 'Content Creation', type: '₹/mo base' },
                 { key: 'wa', label: 'WhatsApp Mktg / Green Tick', type: '₹ one-time' },
                 { key: 'infl', label: 'Influencer Marketing', type: '₹/mo base' },
-                { key: 'gmb', label: 'GMB Optimization', type: '₹ one-time' }
+                { key: 'gmb', label: 'GMB Optimization', type: '₹ one-time' },
+                { key: 'logo', label: 'Logo & Brand Identity', type: '₹ one-time' },
+                { key: 'pitch', label: 'Pitch Deck / Business PPT', type: '₹ one-time' },
+                { key: 'orm', label: 'Online Reputation Mgmt (ORM)', type: '₹/mo base' }
+              ].map((item) => (
+                <div key={item.key} className="admin-row">
+                  <span className="lbl">{item.label}</span>
+                  <input 
+                    type="number" 
+                    value={basePrices[item.key as keyof typeof basePrices]}
+                    onChange={(e) => setBasePrices({ ...basePrices, [item.key]: parseInt(e.target.value) || 0 })}
+                  />
+                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{item.type}</span>
+                </div>
+              ))}
+
+              <div className="admin-section-label">Companion fees</div>
+              {[
+                { key: 'adsSetupBasic', label: 'Paid Ads setup (Low/Medium)', type: '₹ one-time' },
+                { key: 'adsSetupPremium', label: 'Paid Ads setup (High)', type: '₹ one-time' },
+                { key: 'domainSecurity', label: 'Domain Security & SSL (High only)', type: '₹ one-time' }
               ].map((item) => (
                 <div key={item.key} className="admin-row">
                   <span className="lbl">{item.label}</span>
@@ -1454,7 +1561,16 @@ export default function Home() {
                     <div>
                       <div className="client-line">{clientName}</div>
                       <div className="client-meta">
-                        {[clientCity, industryLabels[industry], stageLabels[stage], goalLabels[goal]].filter(Boolean).join(' · ')}
+                        {[
+                          clientCity,
+                          industryLabels[industry],
+                          stageLabels[stage],
+                          [
+                            goalLabels[goal],
+                            secondaryGoal !== 'none' && goalLabels[secondaryGoal],
+                            tertiaryGoal !== 'none' && goalLabels[tertiaryGoal]
+                          ].filter(Boolean).join(' + ')
+                        ].filter(Boolean).join(' · ')}
                       </div>
                     </div>
                     {closestKey && (
