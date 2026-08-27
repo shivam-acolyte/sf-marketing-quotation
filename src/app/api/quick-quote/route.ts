@@ -4,45 +4,45 @@ import { getRecommendedServices } from '@/lib/recommendation';
 import { analyzeRequirements } from '@/lib/ai';
 
 const SERVICE_MAPPINGS: Record<string, string> = {
-  smm:    'Social Media Management – Basic (1 Month)',
+  smm:    '1 Month (Basic) - Social Media Plan',
   linkedin: 'LinkedIn / B2B Social Marketing',
-  ads:    'Paid Ads Management – Silver (Basic Package)',
-  seo:    'SEO – 2 Months',
-  web:    'Website – Basic (5-Page)',
-  ecomm:  'E-commerce Website / Store',
+  ads:    'Paid Ads (Silver) - Basic Package',
+  seo:    'SEO 2-Months',
+  web:    'BASIC WEBSITE',
+  ecomm:  'E-COMMERCE WEBSITE',
   content: 'Content Creation & Marketing',
   wa:     'WhatsApp Marketing & Green Tick',
   infl:   'Influencer Marketing',
   gmb:    'Google Business Profile Optimization',
-  logo:   'Logo Design – Standard',
+  logo:   'Standard Logo Desing',
   pitch:  'Pitch Deck / Business PPT Preparation',
   orm:    'Online Reputation Management (ORM)',
   dam:    'Dedicated Account Manager',
   analytics: 'Advanced Analytics & Reporting',
   adsSetupBasic: 'Paid Ads — Setup Fee (Basic)',
   adsSetupPremium: 'Paid Ads — Setup Fee (Premium)',
-  domainSecurity: 'Domain Security & SSL',
+  domainSecurity: 'DOMAIN SECURITY',
 };
 
 const DEFAULT_PRICES: Record<string, { min: number; max: number; desc: string; sales: string }> = {
-  smm:    { min: 20000, max: 50000,  desc: 'Social Media Management – Basic (1 Month)',     sales: 'Kickstart your social media with professionally managed monthly campaign.' },
+  smm:    { min: 20000, max: 50000,  desc: '1 Month (Basic) - Social Media Plan',     sales: 'Kickstart your social media with professionally managed monthly campaign.' },
   linkedin: { min: 15000, max: 35000, desc: 'LinkedIn / B2B Social Marketing', sales: 'Drive B2B growth and authority on LinkedIn.' },
-  ads:    { min: 35000, max: 75000,  desc: 'Paid Ads Management – Silver (Basic Package)',  sales: 'Generate leads and sales with targeted Meta & Google Ads.' },
-  seo:    { min: 18000, max: 40000,  desc: 'SEO – 2 Months',                                sales: 'Rank higher on Google with keyword-targeted SEO.' },
-  web:    { min: 20000, max: 60000,  desc: 'Website – Basic (5-Page)',                      sales: 'Professional 5-page responsive website with basic SEO.' },
-  ecomm:  { min: 90000, max: 180000, desc: 'E-commerce Website / Store', sales: 'Robust online storefront with secure shopping pipeline.' },
+  ads:    { min: 30000, max: 40000,  desc: 'Paid Ads (Silver) - Basic Package',  sales: 'Generate leads and sales with targeted Meta & Google Ads.' },
+  seo:    { min: 30000, max: 120000, desc: 'SEO 2-Months',                                sales: 'Rank higher on Google with keyword-targeted SEO.' },
+  web:    { min: 20000, max: 60000,  desc: 'BASIC WEBSITE',                      sales: 'Professional 5-page responsive website with basic SEO.' },
+  ecomm:  { min: 60000, max: 120000, desc: 'E-COMMERCE WEBSITE', sales: 'Robust online storefront with secure shopping pipeline.' },
   content: { min: 8000, max: 25000,  desc: 'Content Creation & Marketing',                  sales: 'Compelling content to engage and convert your audience.' },
   wa:     { min: 5000,  max: 15000,  desc: 'WhatsApp Marketing & Green Tick',               sales: 'WhatsApp broadcast campaigns and verified business tick.' },
   infl:   { min: 10000, max: 30000,  desc: 'Influencer Marketing',                          sales: 'Reach new audiences through targeted influencer collaborations.' },
   gmb:    { min: 4000,  max: 12000,  desc: 'Google Business Profile Optimization',          sales: 'Appear in local map results and Google searches.' },
-  logo:   { min: 15000, max: 30000,  desc: 'Logo Design – Standard',                        sales: 'A clean professional logo that represents your brand.' },
+  logo:   { min: 5000,  max: 15000,  desc: 'Standard Logo Desing',                        sales: 'A clean professional logo that represents your brand.' },
   pitch:  { min: 15000, max: 30000,  desc: 'Pitch Deck / Business PPT Preparation', sales: 'Investor-ready pitch deck and corporate business presentation.' },
   orm:    { min: 8000, max: 20000,  desc: 'Online Reputation Management (ORM)', sales: 'Build brand trust and manage customer reviews.' },
   dam:    { min: 8000, max: 15000,  desc: 'Dedicated Account Manager', sales: 'Single point of contact for campaigns coordination.' },
   analytics: { min: 5000, max: 12000, desc: 'Advanced Analytics & Reporting', sales: 'Deep-dive custom data reporting and dashboards.' },
   adsSetupBasic: { min: 2000, max: 5000, desc: 'Paid Ads — Setup Fee (Basic)', sales: 'Initial tracking and campaign structures layout.' },
   adsSetupPremium: { min: 5000, max: 12000, desc: 'Paid Ads — Setup Fee (Premium)', sales: 'Advanced conversion APIs and custom audiences mapping.' },
-  domainSecurity: { min: 25000, max: 50000, desc: 'Domain Security & SSL', sales: 'Advanced DNS security, Cloudflare setup, and SSL validation.' },
+  domainSecurity: { min: 25000, max: 75000, desc: 'DOMAIN SECURITY', sales: 'Advanced DNS security, WHOIS privacy protection, and DNS lock.' },
 };
 
 
@@ -183,7 +183,7 @@ export async function PUT(request: Request) {
     const tax = Math.round(subtotal * 0.18 * 100) / 100;
     const total = subtotal + tax;
 
-    const quotation = await prisma.$transaction(async (tx) => {
+    const quotation = await prisma.$transaction(async (tx: any) => {
       const q = await tx.quotation.create({
         data: {
           quotationNumber,

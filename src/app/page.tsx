@@ -267,9 +267,9 @@ export default function Home() {
         body: JSON.stringify({ basePrices }),
       });
       if (res.ok) {
-        alert('Base prices successfully saved in PostgreSQL database!');
+        alert('Base prices successfully saved locally!');
       } else {
-        alert('Failed to save prices in the database.');
+        alert('Failed to save prices.');
       }
     } catch (error) {
       console.error('Error saving prices:', error);

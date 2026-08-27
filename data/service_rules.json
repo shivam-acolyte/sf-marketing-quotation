@@ -1,0 +1,158 @@
+[
+  {
+    "id": 1,
+    "serviceId": 1,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Build Social Media Presence"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 2,
+    "serviceId": 1,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Brand Awareness"
+    },
+    "priority": 2,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 3,
+    "serviceId": 4,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Brand Awareness"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 4,
+    "serviceId": 13,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Generate Leads"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 5,
+    "serviceId": 13,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Increase Sales/Conversions"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 6,
+    "serviceId": 12,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Increase Sales/Conversions"
+    },
+    "priority": 2,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 7,
+    "serviceId": 15,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Improve Search Engine Rankings (SEO)"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 8,
+    "serviceId": 18,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Improve Search Engine Rankings (SEO)"
+    },
+    "priority": 2,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 9,
+    "serviceId": 15,
+    "condition": {
+      "field": "7",
+      "operator": "contains",
+      "value": "Increase Website Traffic"
+    },
+    "priority": 2,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 10,
+    "serviceId": 2,
+    "condition": {
+      "field": "4",
+      "operator": "equals",
+      "value": "No - We do not have a website"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 11,
+    "serviceId": 6,
+    "condition": {
+      "field": "4",
+      "operator": "equals",
+      "value": "No - We do not have a website"
+    },
+    "priority": 2,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 12,
+    "serviceId": 6,
+    "condition": {
+      "field": "4",
+      "operator": "equals",
+      "value": "Yes - Needs Redesign/SEO"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 13,
+    "serviceId": 9,
+    "condition": {
+      "field": "2",
+      "operator": "equals",
+      "value": "E-commerce / Online Store"
+    },
+    "priority": 1,
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z"
+  }
+]

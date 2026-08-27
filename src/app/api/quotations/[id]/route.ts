@@ -53,7 +53,7 @@ export async function PUT(
 
     if (discountAmount !== undefined) {
       const discount = Number(discountAmount);
-      const itemsForTotals = currentQuote.items.map((item) => ({
+      const itemsForTotals = currentQuote.items.map((item: any) => ({
         unitPrice: Number(item.unitPrice),
         quantity: item.quantity,
       }));

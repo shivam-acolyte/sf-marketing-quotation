@@ -1,0 +1,321 @@
+[
+  {
+    "id": 1,
+    "name": "1 Month (Basic) - Social Media Plan",
+    "minPrice": 20000,
+    "maximumPrice": 50000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables: 10-12 creative posts, festival creatives, stories &amp; deal posts with captions and hashtags.</p><p>Basic profile optimization and consistent brand presence.</p>",
+    "salesDescription": "Kickstart your social media with a professionally managed 1-month campaign.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 2,
+    "name": "1 Pager Website",
+    "minPrice": 10000,
+    "maximumPrice": 25000,
+    "description": "<p style=\"margin-bottom: 0px;\">₹10,000 Package:</p><p style=\"margin-bottom: 0px;\">Single scroll responsive website with professional design, contact form &amp; WhatsApp button. Domain not included, server included (valid for 6 months), fast-loading &amp; enquiry-ready website.</p><p style=\"margin-bottom: 0px;\"><br></p><p style=\"margin-bottom: 0px;\">₹15,000 Package:</p><p>Single scroll responsive website with professional design, contact form &amp; WhatsApp button. Domain + server included (server valid for 6 months), fast-loading &amp; enquiry-ready website.</p>",
+    "salesDescription": "A clean, fast, single-page website that captures leads and drives enquiries.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 3,
+    "name": "11+1 Months (Premium) - Social Media Plan",
+    "minPrice": 280000,
+    "maximumPrice": 500000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables:&nbsp; 20-24 High-quality posts, stories, reels, deals &amp; festival creatives with advanced strategy.</p><p style=\"margin-bottom: 0px;\">Complete brand building, analytics, profile optimization &amp; long-term growth focus.</p>",
+    "salesDescription": "The ultimate social media growth package — build a market-leading brand presence.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 4,
+    "name": "3 Months (Silver) - Social Media Plan",
+    "minPrice": 80000,
+    "maximumPrice": 150000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables: 10–12 creative posts, festival creatives, stories &amp; deal posts with captions and hashtags.</p><p style=\"margin-bottom: 0px;\">Basic profile optimization and consistent brand presence.</p>",
+    "salesDescription": "Build brand consistency with 3 months of managed social media content.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 5,
+    "name": "6 Months (Gold) - Social Media Plan",
+    "minPrice": 150000,
+    "maximumPrice": 280000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables:&nbsp; 15-16 Creative posts, stories, deal creatives &amp; reel creatives with monthly content planning.</p><p style=\"margin-bottom: 0px;\">Improved engagement, basic analytics &amp; steady brand growth.</p>",
+    "salesDescription": "Accelerate engagement with a 6-month full-service social media strategy.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 6,
+    "name": "BASIC WEBSITE",
+    "minPrice": 20000,
+    "maximumPrice": 60000,
+    "description": "<p>5-page responsive website with professional design, contact form, WhatsApp button &amp; basic SEO.</p>",
+    "salesDescription": "A professional 5-page website with SEO foundation to establish your digital presence.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 7,
+    "name": "CUSTOM / ADVANCED E-COMMERCE WEBSITE",
+    "minPrice": 150000,
+    "maximumPrice": 500000,
+    "description": "<p style=\"margin-bottom: 0px;\">E-COMMERCE WEBSITE (Next.js / PHP)</p><p style=\"margin-bottom: 0px;\">Custom high-performance e-commerce website with advanced features &amp; scalable architecture.</p><p style=\"margin-bottom: 0px;\">______________</p><p style=\"margin-bottom: 0px;\">DYNAMIC WEBSITE</p><p>Custom dynamic website with admin panel, lead management, SEO &amp; performance optimization.</p>",
+    "salesDescription": "Enterprise-grade custom website built for performance, scale, and advanced functionality.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 8,
+    "name": "DOMAIN SECURITY",
+    "minPrice": 25000,
+    "maximumPrice": 75000,
+    "description": "<p>Domain lock, WHOIS privacy protection, DNS security &amp; unauthorized transfer protection. SSL guidance, renewal monitoring &amp; basic security setup to keep domain safe and protected.</p>",
+    "salesDescription": "Protect your brand online with comprehensive domain security and privacy services.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 9,
+    "name": "E-COMMERCE WEBSITE",
+    "minPrice": 60000,
+    "maximumPrice": 120000,
+    "description": "<p style=\"margin-bottom: 0px;\">Online store with products, cart, checkout, payment gateway &amp; order management system.</p>",
+    "salesDescription": "Sell online with a fully featured e-commerce store with payment gateway integration.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 10,
+    "name": "Monthly recurring payment",
+    "minPrice": 1,
+    "maximumPrice": 0,
+    "description": "",
+    "salesDescription": "Monthly subscription payment method.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 11,
+    "name": "One Time Payment",
+    "minPrice": 1,
+    "maximumPrice": 0,
+    "description": "",
+    "salesDescription": "One-time project payment method.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 12,
+    "name": "Paid Ads (Gold) - Premium Package",
+    "minPrice": 45000,
+    "maximumPrice": 50000,
+    "description": "<p style=\"margin-bottom: 0px;\">Premium Package (₹45,000 – ₹50,000 / Month + ₹5,000 One-Time Setup +Landing pages)</p><p>Complete ad strategy &amp; funnel setup, advanced audience targeting, multiple ad creatives &amp; A/B testing, conversion &amp; remarketing setup, daily optimization, detailed weekly + monthly performance reports. (Ad spend client paid)</p>",
+    "salesDescription": "Maximize ROI with a fully managed premium paid ads strategy including A/B testing and remarketing.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 13,
+    "name": "Paid Ads (Silver) - Basic Package",
+    "minPrice": 30000,
+    "maximumPrice": 40000,
+    "description": "<p style=\"margin-bottom: 0px;\">Basic Package (₹30,000 – ₹40,000 / Month + ₹2,000 One-Time Setup + Landing pages)</p><p>Ad account setup, campaign creation &amp; management, audience targeting, basic creatives guidance, conversion tracking, weekly performance monitoring &amp; monthly report. (Ad spend client paid)</p>",
+    "salesDescription": "Launch targeted paid ad campaigns to generate leads and drive measurable results.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 14,
+    "name": "Premium Logo  Design",
+    "minPrice": 20000,
+    "maximumPrice": 30000,
+    "description": "<p>Deliverables: 4–5 logo concepts, multiple revisions, final logo files (PNG, JPG, SVG, PDF), brand guidelines, color palette, fonts, black &amp; white versions aur mockups.</p>",
+    "salesDescription": "A premium brand identity package with full logo concepts, guidelines, and mockups.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 15,
+    "name": "SEO 2-Months",
+    "minPrice": 30000,
+    "maximumPrice": 120000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables: Basic on-page SEO, keyword research aur initial backlinks.</p><p style=\"margin-bottom: 0px;\">Website visibility improve karne ke liye strong foundation.</p>",
+    "salesDescription": "Lay the groundwork for higher Google rankings with a focused 2-month SEO campaign.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 16,
+    "name": "SEO Gold 6-Months",
+    "minPrice": 120000,
+    "maximumPrice": 180000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables: Advanced SEO, quality backlinks aur content optimization.</p><p style=\"margin-bottom: 0px;\">Better rankings, traffic growth aur monthly reports.</p>",
+    "salesDescription": "Achieve stronger rankings and consistent organic traffic growth over 6 months.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 17,
+    "name": "SEO Platinum 11+1 - Months",
+    "minPrice": 180000,
+    "maximumPrice": 250000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables: Complete SEO with high-authority backlinks &amp; technical optimization.</p><p style=\"margin-bottom: 0px;\">Top rankings, long-term organic traffic aur full performance tracking.</p>",
+    "salesDescription": "Dominate search results with a 12-month platinum SEO strategy.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 18,
+    "name": "SEO Silver 3-Months",
+    "minPrice": 60000,
+    "maximumPrice": 120000,
+    "description": "<p style=\"margin-bottom: 0px;\">Deliverables: Basic on-page SEO, keyword research aur initial backlinks.</p><p style=\"margin-bottom: 0px;\">Website visibility improve karne ke liye strong foundation.</p>",
+    "salesDescription": "Build organic traffic with 3 months of targeted SEO optimization.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 19,
+    "name": "Standard Logo Desing",
+    "minPrice": 5000,
+    "maximumPrice": 15000,
+    "description": "<p>Deliverables: 1 logo concept, 2–3 options ke sath all logo files.</p>",
+    "salesDescription": "Get a professional logo for your brand at an affordable price.",
+    "active": true,
+    "createdAt": "2026-08-27T05:00:06.496Z",
+    "updatedAt": "2026-08-27T05:00:06.496Z"
+  },
+  {
+    "id": 20,
+    "name": "LinkedIn / B2B Social Marketing",
+    "minPrice": 15000,
+    "maximumPrice": 35000,
+    "description": "LinkedIn / B2B Social Marketing",
+    "salesDescription": "Drive B2B growth and authority on LinkedIn.",
+    "createdAt": "2026-08-27T05:21:58.573Z",
+    "updatedAt": "2026-08-27T05:21:58.573Z"
+  },
+  {
+    "id": 21,
+    "name": "Content Creation & Marketing",
+    "minPrice": 8000,
+    "maximumPrice": 25000,
+    "description": "Content Creation & Marketing",
+    "salesDescription": "Compelling content to engage and convert your audience.",
+    "createdAt": "2026-08-27T05:21:58.577Z",
+    "updatedAt": "2026-08-27T05:21:58.577Z"
+  },
+  {
+    "id": 22,
+    "name": "WhatsApp Marketing & Green Tick",
+    "minPrice": 5000,
+    "maximumPrice": 15000,
+    "description": "WhatsApp Marketing & Green Tick",
+    "salesDescription": "WhatsApp broadcast campaigns and verified business tick.",
+    "createdAt": "2026-08-27T05:21:58.579Z",
+    "updatedAt": "2026-08-27T05:21:58.579Z"
+  },
+  {
+    "id": 23,
+    "name": "Influencer Marketing",
+    "minPrice": 10000,
+    "maximumPrice": 30000,
+    "description": "Influencer Marketing",
+    "salesDescription": "Reach new audiences through targeted influencer collaborations.",
+    "createdAt": "2026-08-27T05:21:58.581Z",
+    "updatedAt": "2026-08-27T05:21:58.581Z"
+  },
+  {
+    "id": 24,
+    "name": "Google Business Profile Optimization",
+    "minPrice": 4000,
+    "maximumPrice": 12000,
+    "description": "Google Business Profile Optimization",
+    "salesDescription": "Appear in local map results and Google searches.",
+    "createdAt": "2026-08-27T05:21:58.582Z",
+    "updatedAt": "2026-08-27T05:21:58.582Z"
+  },
+  {
+    "id": 25,
+    "name": "Pitch Deck / Business PPT Preparation",
+    "minPrice": 15000,
+    "maximumPrice": 30000,
+    "description": "Pitch Deck / Business PPT Preparation",
+    "salesDescription": "Investor-ready pitch deck and corporate business presentation.",
+    "createdAt": "2026-08-27T05:21:58.585Z",
+    "updatedAt": "2026-08-27T05:21:58.585Z"
+  },
+  {
+    "id": 26,
+    "name": "Online Reputation Management (ORM)",
+    "minPrice": 8000,
+    "maximumPrice": 20000,
+    "description": "Online Reputation Management (ORM)",
+    "salesDescription": "Build brand trust and manage customer reviews.",
+    "createdAt": "2026-08-27T05:21:58.587Z",
+    "updatedAt": "2026-08-27T05:21:58.587Z"
+  },
+  {
+    "id": 27,
+    "name": "Dedicated Account Manager",
+    "minPrice": 8000,
+    "maximumPrice": 15000,
+    "description": "Dedicated Account Manager",
+    "salesDescription": "Single point of contact for campaigns coordination.",
+    "createdAt": "2026-08-27T05:21:58.589Z",
+    "updatedAt": "2026-08-27T05:21:58.589Z"
+  },
+  {
+    "id": 28,
+    "name": "Advanced Analytics & Reporting",
+    "minPrice": 5000,
+    "maximumPrice": 12000,
+    "description": "Advanced Analytics & Reporting",
+    "salesDescription": "Deep-dive custom data reporting and dashboards.",
+    "createdAt": "2026-08-27T05:21:58.590Z",
+    "updatedAt": "2026-08-27T05:21:58.590Z"
+  },
+  {
+    "id": 29,
+    "name": "Paid Ads — Setup Fee (Basic)",
+    "minPrice": 2000,
+    "maximumPrice": 5000,
+    "description": "Paid Ads — Setup Fee (Basic)",
+    "salesDescription": "Initial tracking and campaign structures layout.",
+    "createdAt": "2026-08-27T05:21:58.592Z",
+    "updatedAt": "2026-08-27T05:21:58.592Z"
+  },
+  {
+    "id": 30,
+    "name": "Paid Ads — Setup Fee (Premium)",
+    "minPrice": 5000,
+    "maximumPrice": 12000,
+    "description": "Paid Ads — Setup Fee (Premium)",
+    "salesDescription": "Advanced conversion APIs and custom audiences mapping.",
+    "createdAt": "2026-08-27T05:21:58.594Z",
+    "updatedAt": "2026-08-27T05:21:58.594Z"
+  }
+]

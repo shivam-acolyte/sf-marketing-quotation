@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const quotationNumber = `QT-${year}-${random}`;
 
     // Create quotation in database transaction
-    const quotation = await prisma.$transaction(async (tx) => {
+    const quotation = await prisma.$transaction(async (tx: any) => {
       // 1. Create Quotation record
       const quote = await tx.quotation.create({
         data: {

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "4324bc2e-a37f-489c-ac6e-7535a3fb701e",
+    "quotationNumber": "QT-2026-5816",
+    "customerId": "5aabf1f3-ac70-453c-adbe-5fe9718a6dfe",
+    "assessmentId": "8bb7020f-e6f1-4b48-bd5d-3281a87c43ab",
+    "subtotal": 88000,
+    "discount": 0,
+    "tax": 15840,
+    "total": 103840,
+    "status": "draft",
+    "validUntil": "2026-09-11T05:29:49.956Z",
+    "createdAt": "2026-08-27T05:29:49.958Z",
+    "updatedAt": "2026-08-27T05:29:49.958Z"
+  }
+]

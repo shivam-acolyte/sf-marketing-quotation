@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "quotationId": "4324bc2e-a37f-489c-ac6e-7535a3fb701e",
+    "serviceId": null,
+    "serviceName": "E-commerce Instagram/Facebook Reels & UGC Validation",
+    "description": "High relevance",
+    "quantity": 1,
+    "unitPrice": 20000,
+    "totalPrice": 20000,
+    "createdAt": "2026-08-27T05:29:49.961Z",
+    "updatedAt": "2026-08-27T05:29:49.961Z"
+  },
+  {
+    "id": 2,
+    "quotationId": "4324bc2e-a37f-489c-ac6e-7535a3fb701e",
+    "serviceId": null,
+    "serviceName": "E-commerce Website / Online Store",
+    "description": "High relevance",
+    "quantity": 1,
+    "unitPrice": 60000,
+    "totalPrice": 60000,
+    "createdAt": "2026-08-27T05:29:49.964Z",
+    "updatedAt": "2026-08-27T05:29:49.964Z"
+  },
+  {
+    "id": 3,
+    "quotationId": "4324bc2e-a37f-489c-ac6e-7535a3fb701e",
+    "serviceId": null,
+    "serviceName": "Meta Shopping Ads & Google E-commerce funnels",
+    "description": "High relevance",
+    "quantity": 1,
+    "unitPrice": 30000,
+    "totalPrice": 30000,
+    "createdAt": "2026-08-27T05:29:49.967Z",
+    "updatedAt": "2026-08-27T05:29:49.967Z"
+  },
+  {
+    "id": 4,
+    "quotationId": "4324bc2e-a37f-489c-ac6e-7535a3fb701e",
+    "serviceId": null,
+    "serviceName": "Product & Collection page SEO Ranking search optimization",
+    "description": "Medium relevance",
+    "quantity": 1,
+    "unitPrice": 30000,
+    "totalPrice": 30000,
+    "createdAt": "2026-08-27T05:29:49.970Z",
+    "updatedAt": "2026-08-27T05:29:49.970Z"
+  },
+  {
+    "id": 5,
+    "quotationId": "4324bc2e-a37f-489c-ac6e-7535a3fb701e",
+    "serviceId": null,
+    "serviceName": "Brand Marketing Copywriting & graphic creatives design",
+    "description": "Medium relevance",
+    "quantity": 1,
+    "unitPrice": 8000,
+    "totalPrice": 8000,
+    "createdAt": "2026-08-27T05:29:49.973Z",
+    "updatedAt": "2026-08-27T05:29:49.973Z"
+  },
+  {
+    "id": 6,
+    "quotationId": "4324bc2e-a37f-489c-ac6e-7535a3fb701e",
+    "serviceId": null,
+    "serviceName": "Paid Ads — Setup Fee",
+    "description": "Required with Paid Ads",
+    "quantity": 1,
+    "unitPrice": 2000,
+    "totalPrice": 2000,
+    "createdAt": "2026-08-27T05:29:49.977Z",
+    "updatedAt": "2026-08-27T05:29:49.977Z"
+  }
+]

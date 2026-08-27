@@ -1,0 +1,30 @@
+[
+  {
+    "id": "8bb7020f-e6f1-4b48-bd5d-3281a87c43ab",
+    "customerId": "5aabf1f3-ac70-453c-adbe-5fe9718a6dfe",
+    "answers": {
+      "clientName": "sk",
+      "clientCity": "",
+      "salesperson": "",
+      "industry": "ecommerce",
+      "stage": "established",
+      "goal": "awareness",
+      "secondaryGoal": "none",
+      "tertiaryGoal": "none",
+      "businessDescription": "fish shop",
+      "tierName": "MEDIUM"
+    },
+    "aiAnalysis": {
+      "business_summary": "sk is a Large (100+ employees) company operating in the ecommerce sector, described as: \"fish shop\".",
+      "primary_goals": [
+        "awareness"
+      ],
+      "recommended_services": [],
+      "strategy_summary": "We will deploy a highly-optimized e-commerce acquisition funnel. Our priority is driving direct storefront conversion volume using conversion-targeted Meta shopping ads, supported by ongoing organic SEO to build long-term transactional search traffic.",
+      "priority": "high"
+    },
+    "status": "completed",
+    "createdAt": "2026-08-27T05:29:49.955Z",
+    "updatedAt": "2026-08-27T05:29:49.955Z"
+  }
+]
