@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import { Service } from '@prisma/client';
+import { Service } from '@/types/db';
 
 export interface ServiceOption {
   name: string;

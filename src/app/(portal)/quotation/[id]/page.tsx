@@ -111,6 +111,7 @@ export default function QuotationPage() {
     );
   }
 
+  /*
   const handleSendEmail = async () => {
     setSendingEmail(true);
     setEmailStatus('idle');
@@ -135,6 +136,7 @@ export default function QuotationPage() {
       setSendingEmail(false);
     }
   };
+  */
 
   const handleAcceptProposal = async () => {
     try {
@@ -238,6 +240,7 @@ export default function QuotationPage() {
             <span>Download</span>
           </a>
 
+          {/*
           <button
             type="button"
             onClick={handleSendEmail}
@@ -247,6 +250,7 @@ export default function QuotationPage() {
             <Mail className="w-3.5 h-3.5 text-emerald-400" />
             <span>{sendingEmail ? 'Sending...' : 'Email Proposal'}</span>
           </button>
+          */}
 
           {acceptStatus !== 'accepted' && (
             <button
@@ -262,17 +266,21 @@ export default function QuotationPage() {
       </section>
 
       {/* Email Status Notification Alerts */}
-      {emailStatus === 'success' && (
+      {/*
+      emailStatus === 'success' && (
         <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-950/20 text-emerald-400 text-xs flex items-center gap-2.5">
           <CheckCircle className="w-4.5 h-4.5 flex-shrink-0" />
           <span>Success! Proposal PDF generated and emailed to <strong>{quote.customer.email}</strong>. Check your inbox!</span>
         </div>
-      )}
-      {emailStatus === 'error' && (
+      )
+      */}
+      {/*
+      emailStatus === 'error' && (
         <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-950/20 text-rose-400 text-xs">
           Error sending email. Please verify that SMTP environment variables are configured correctly.
         </div>
-      )}
+      )
+      */}
 
       {/* Accept Success Banner */}
       {acceptStatus === 'accepted' && (

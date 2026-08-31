@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
+
+export async function POST() {
+  return NextResponse.json({ message: 'Email service is currently disabled.' }, { status: 200 });
+}
+
+/*
 import { prisma } from '@/lib/db';
 import { generateQuotationPDF } from '@/lib/pdf';
 import nodemailer from 'nodemailer';
 
-export async function POST(
+export async function POST_DISABLED(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -63,9 +69,9 @@ export async function POST(
           <p>We look forward to helping your business grow!</p>
           
           <p style="margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; font-size: 0.9em; color: #64748b;">
-            Best regards,<br>
-            <strong>StartupFlora Team</strong><br>
-            info@startupflora.com
+             Best regards,<br>
+             <strong>StartupFlora Team</strong><br>
+             info@startupflora.com
           </p>
         </div>
       `,
@@ -93,3 +99,4 @@ export async function POST(
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+*/

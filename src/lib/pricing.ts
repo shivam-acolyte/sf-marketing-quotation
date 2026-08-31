@@ -1,4 +1,4 @@
-import { Service } from '@prisma/client';
+import { Service } from '@/types/db';
 
 export function calculateComplexityScore(answers: Record<string, any>): number {
   let score = 0.0;

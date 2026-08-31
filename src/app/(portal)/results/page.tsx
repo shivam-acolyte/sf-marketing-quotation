@@ -175,10 +175,10 @@ function ResultsContent() {
         <h2 className="text-xl font-bold text-slate-100">Assessment Error</h2>
         <p className="text-slate-400 text-sm leading-relaxed">{errorMsg}</p>
         <button
-          onClick={() => router.push('/assessment')}
+          onClick={() => router.push('/')}
           className="mt-2 bg-slate-900 border border-slate-800 hover:border-slate-700 px-6 py-2 rounded-xl text-xs font-semibold text-slate-300"
         >
-          Start Survey
+          Return Home
         </button>
       </div>
     );

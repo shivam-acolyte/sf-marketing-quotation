@@ -369,7 +369,17 @@ export default function Home() {
       domainSecurity:  { name: getDynamicServiceName('domainSecurity', industry), type: "onetime",  base: basePrices.domainSecurity },
     };
 
-    const ranked = allServiceKeys.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+    const hasWebsite = presence.includes('website');
+    const hasSocial = presence.includes('social');
+    const hasGMB = presence.includes('gmb');
+
+    const excludeKeys: string[] = [];
+    if (hasWebsite) excludeKeys.push('web', 'ecomm');
+    if (hasSocial) excludeKeys.push('smm', 'linkedin');
+    if (hasGMB) excludeKeys.push('gmb');
+
+    const availableKeys = allServiceKeys.filter(k => !excludeKeys.includes(k));
+    const ranked = availableKeys.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
 
     // Low Plan: Score >= 7 (minimum 2 services)
     let lowList = ranked.filter(k => (scores[k] || 0) >= 7).slice(0, 3);

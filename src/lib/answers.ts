@@ -1,4 +1,4 @@
-import { Question } from '@prisma/client';
+import { Question } from '@/types/db';
 
 export function getAugmentedAnswers(
   answers: Record<string, any>,

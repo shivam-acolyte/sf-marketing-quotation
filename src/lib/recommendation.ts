@@ -1,4 +1,4 @@
-import { ServiceRule, Service } from '@prisma/client';
+import { ServiceRule, Service } from '@/types/db';
 
 export interface RuleCondition {
   field: string; // The question ID, e.g., "7" or "4"

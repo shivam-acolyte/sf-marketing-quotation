@@ -850,16 +850,16 @@ const QuotationDocument: React.FC<PDFQuotationProps> = ({ quotation, questions, 
     }
   });
 
+  const websiteVal = String(answers['4'] || '').toLowerCase();
+  const instagramVal = String(answers['5'] || '').toLowerCase();
+  const gmbVal = String(answers['6'] || '').toLowerCase();
+
+  const hasWebsite = websiteVal.includes('yes') || websiteVal.includes('already');
+  const hasSocial = instagramVal.includes('yes') || instagramVal.includes('already');
+  const hasGMB = gmbVal.includes('yes') || gmbVal.includes('already');
+  const startingFromZero = !hasWebsite && !hasSocial && !hasGMB;
+
   const getScoredServices = () => {
-    const websiteVal = String(answers['4'] || '').toLowerCase();
-    const instagramVal = String(answers['5'] || '').toLowerCase();
-    const gmbVal = String(answers['6'] || '').toLowerCase();
-
-    const hasWebsite = websiteVal.includes('yes') || websiteVal.includes('already');
-    const hasSocial = instagramVal.includes('yes') || instagramVal.includes('already');
-    const hasGMB = gmbVal.includes('yes') || gmbVal.includes('already');
-    const startingFromZero = !hasWebsite && !hasSocial && !hasGMB;
-
     const presenceAdj: Record<string, number> = {};
     const bump = (k: string, v: number) => { 
       presenceAdj[k] = (presenceAdj[k] || 0) + v; 
@@ -914,7 +914,13 @@ const QuotationDocument: React.FC<PDFQuotationProps> = ({ quotation, questions, 
     domainSecurity:  { name: getDynamicServiceName('domainSecurity', ind), type: "onetime",  base: basePrices.domainSecurity },
   };
 
-  const ranked = allServiceKeys.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+  const excludeKeys: string[] = [];
+  if (hasWebsite) excludeKeys.push('web', 'ecomm');
+  if (hasSocial) excludeKeys.push('smm', 'linkedin');
+  if (hasGMB) excludeKeys.push('gmb');
+
+  const availableKeys = allServiceKeys.filter(k => !excludeKeys.includes(k));
+  const ranked = availableKeys.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
 
   let lowList = ranked.filter(k => (scores[k] || 0) >= 7).slice(0, 3);
   if (lowList.length < 2) lowList = ranked.slice(0, 2);

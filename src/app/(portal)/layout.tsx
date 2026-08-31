@@ -33,7 +33,6 @@ export default function PortalLayout({
             
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
               <Link href="/" className="hover:text-emerald-400 transition-colors">Home</Link>
-              <Link href="/assessment" className="hover:text-emerald-400 transition-colors">Get Proposal</Link>
             </nav>
           </div>
 
@@ -43,12 +42,6 @@ export default function PortalLayout({
               className="text-xs font-semibold text-slate-400 hover:text-emerald-400 border border-slate-800 hover:border-emerald-500/50 px-3.5 py-1.5 rounded-lg transition-all"
             >
               Admin Panel
-            </Link>
-            <Link 
-              href="/assessment" 
-              className="text-xs font-semibold bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 px-4 py-2 rounded-lg transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.03]"
-            >
-              Get Started
             </Link>
           </div>
         </div>
