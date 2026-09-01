@@ -1,3 +1,20 @@
+/**
+ * ============================================================================
+ * Database Initialization Script (JSON File Seeder)
+ * ============================================================================
+ * 
+ * This script seeds and initializes the local flat JSON database inside the
+ * `data/` directory by reading marketing products/services from the Excel sheet
+ * (`Product (product.template) (6).xlsx`) and generating initial JSON records for:
+ *  - `data/services.json`
+ *  - `data/questions.json`
+ *  - `data/service_rules.json`
+ *  - `data/customers.json`
+ *  - `data/assessments.json`
+ *  - `data/quotations.json`
+ *  - `data/quotation_items.json`
+ */
+
 const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
@@ -33,11 +50,15 @@ const SALES_DESCRIPTIONS = {
   'One Time Payment': 'One-time project payment method.'
 };
 
+/**
+ * Initializes and writes all JSON files in the data/ directory.
+ */
 function initDb() {
   console.log('Reading XLSX file from:', XLSX_PATH);
   const workbook = xlsx.readFile(XLSX_PATH);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = xlsx.utils.sheet_to_json(sheet);
+
 
   console.log(`Processing ${rows.length} rows from Excel sheet...`);
   const now = new Date().toISOString();

@@ -1,28 +1,48 @@
+/**
+ * ============================================================================
+ * JSON File-based Data Store Engine (Simulated Database Layer)
+ * ============================================================================
+ * 
+ * Instead of an external SQL/NoSQL database server (PostgreSQL, MySQL, MongoDB),
+ * this application uses local flat JSON files located in the `data/` directory.
+ * 
+ * It exports a `prisma` client wrapper (`MockPrismaClient`) that mimics standard
+ * Prisma ORM query syntax (findMany, findFirst, findUnique, create, update, delete, $transaction)
+ * while reading and writing directly to local JSON files (`data/*.json`).
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
+// Base directory path where all JSON table files are stored
 const DATA_DIR = path.join(process.cwd(), 'data');
 
-// Table mappings to file names
+// Table mappings: associates table entity names to their corresponding JSON file in data/
 const TABLE_FILES: Record<string, string> = {
-  service: 'services.json',
-  question: 'questions.json',
-  serviceRule: 'service_rules.json',
-  customer: 'customers.json',
-  assessment: 'assessments.json',
-  quotation: 'quotations.json',
-  quotationItem: 'quotation_items.json',
+  service: 'services.json',           // Marketing services catalog & pricing
+  question: 'questions.json',         // Dynamic questionnaire questions
+  serviceRule: 'service_rules.json',  // Recommendation engine rules
+  customer: 'customers.json',         // Customer contact details & leads
+  assessment: 'assessments.json',     // Submitted questionnaire answers & AI analyses
+  quotation: 'quotations.json',       // Generated quotations & totals
+  quotationItem: 'quotation_items.json', // Line items inside quotations
 };
 
-// Reads data for a table
+/**
+ * Reads and parses table records from the matching JSON file.
+ * If the file or data directory does not exist, it initializes an empty JSON array file.
+ * 
+ * @param tableName - Name of the table entity (e.g., 'service', 'quotation')
+ * @returns Array of table records parsed from JSON
+ */
 function readTable(tableName: string): any[] {
   const fileName = TABLE_FILES[tableName];
   if (!fileName) throw new Error(`Unknown table: ${tableName}`);
   
   const filePath = path.join(DATA_DIR, fileName);
   if (!fs.existsSync(filePath)) {
-    // Auto-create empty file if it doesn't exist
+    // Auto-create empty JSON file if it doesn't exist
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
@@ -34,12 +54,17 @@ function readTable(tableName: string): any[] {
     const raw = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(raw);
   } catch (error) {
-    console.error(`Error reading table ${tableName}:`, error);
+    console.error(`Error reading JSON table ${tableName}:`, error);
     return [];
   }
 }
 
-// Writes data for a table
+/**
+ * Writes updated data array back to the matching JSON file on disk.
+ * 
+ * @param tableName - Name of the table entity
+ * @param data - Array of record objects to persist in JSON format
+ */
 function writeTable(tableName: string, data: any[]): void {
   const fileName = TABLE_FILES[tableName];
   if (!fileName) throw new Error(`Unknown table: ${tableName}`);
@@ -52,7 +77,14 @@ function writeTable(tableName: string, data: any[]): void {
   }
 }
 
-// Helper to evaluate Prisma-like where conditions
+/**
+ * Helper to evaluate Prisma-like `where` filter conditions on in-memory JSON objects.
+ * Supports exact match, case-insensitive string match, and object comparison.
+ * 
+ * @param item - The JSON object record to test
+ * @param where - Prisma-style filter condition object
+ * @returns boolean indicating if the record matches the filter criteria
+ */
 function matches(item: any, where: any): boolean {
   if (!where) return true;
   for (const key of Object.keys(where)) {
@@ -78,7 +110,15 @@ function matches(item: any, where: any): boolean {
   return true;
 }
 
-// Helper to resolve relationships
+/**
+ * Helper to resolve relational foreign-key lookups across JSON files (similar to Prisma `include`).
+ * E.g., attaching customer details to a quotation or rules to a service.
+ * 
+ * @param tableName - Current entity name
+ * @param item - Current record
+ * @param include - Relational inclusion configuration
+ * @returns Record populated with linked JSON records
+ */
 function resolveIncludes(tableName: string, item: any, include: any): any {
   if (!include) return item;
   const resolved = { ...item };
@@ -118,7 +158,9 @@ function resolveIncludes(tableName: string, item: any, include: any): any {
   return resolved;
 }
 
-// Helper to project fields based on select
+/**
+ * Helper to project specific fields based on Prisma-style `select` projection.
+ */
 function applySelect(item: any, select: any): any {
   if (!select) return item;
   const selected: any = {};
@@ -130,7 +172,9 @@ function applySelect(item: any, select: any): any {
   return selected;
 }
 
-// Generates next ID depending on type
+/**
+ * Generates an auto-incrementing integer ID or a UUID string depending on table schema.
+ */
 function generateId(tableName: string, existing: any[]): string | number {
   const integerIdTables = ['service', 'question', 'serviceRule', 'quotationItem'];
   if (integerIdTables.includes(tableName)) {
@@ -140,6 +184,10 @@ function generateId(tableName: string, existing: any[]): string | number {
   return randomUUID();
 }
 
+/**
+ * Table client simulator for interacting with a specific JSON file.
+ * Implements standard CRUD operations conforming to Prisma's model delegates.
+ */
 class JsonTableClient {
   private tableName: string;
 
@@ -147,11 +195,14 @@ class JsonTableClient {
     this.tableName = tableName;
   }
 
+  /**
+   * Reads multiple records from JSON file with filtering, sorting, and relation inclusion.
+   */
   async findMany(args?: any) {
     const data = readTable(this.tableName);
     const results = data.filter((item: any) => matches(item, args?.where));
 
-    // Order By
+    // Handle Order By sorting
     if (args?.orderBy) {
       const orderBy = args.orderBy;
       const keys = Object.keys(orderBy);
@@ -169,13 +220,16 @@ class JsonTableClient {
       }
     }
 
-    // Resolve inclusions & selections
+    // Resolve inclusions & select projections
     return results.map((item: any) => {
       const withIncludes = resolveIncludes(this.tableName, item, args?.include);
       return applySelect(withIncludes, args?.select);
     });
   }
 
+  /**
+   * Finds the first matching record in the JSON file.
+   */
   async findFirst(args?: any) {
     const data = readTable(this.tableName);
     const item = data.find((item: any) => matches(item, args?.where));
@@ -185,10 +239,16 @@ class JsonTableClient {
     return applySelect(withIncludes, args?.select);
   }
 
+  /**
+   * Finds a unique record in the JSON file by criteria.
+   */
   async findUnique(args?: any) {
     return this.findFirst(args);
   }
 
+  /**
+   * Creates a single record and appends it to the JSON file.
+   */
   async create(args: { data: any; include?: any; select?: any }) {
     const data = readTable(this.tableName);
     const now = new Date().toISOString();
@@ -207,6 +267,9 @@ class JsonTableClient {
     return applySelect(withIncludes, args.select);
   }
 
+  /**
+   * Creates multiple records and batch-appends them to the JSON file.
+   */
   async createMany(args: { data: any[] }) {
     const data = readTable(this.tableName);
     const now = new Date().toISOString();
@@ -223,11 +286,14 @@ class JsonTableClient {
     return { count: newRecords.length };
   }
 
+  /**
+   * Updates an existing record in the JSON file.
+   */
   async update(args: { where: any; data: any; include?: any; select?: any }) {
     const data = readTable(this.tableName);
     const index = data.findIndex((item: any) => matches(item, args.where));
     if (index === -1) {
-      throw new Error(`Record to update not found in table ${this.tableName}`);
+      throw new Error(`Record to update not found in JSON table ${this.tableName}`);
     }
     
     const now = new Date().toISOString();
@@ -244,6 +310,9 @@ class JsonTableClient {
     return applySelect(withIncludes, args.select);
   }
 
+  /**
+   * Updates all matching records in the JSON file.
+   */
   async updateMany(args: { where?: any; data: any }) {
     const data = readTable(this.tableName);
     let count = 0;
@@ -265,11 +334,14 @@ class JsonTableClient {
     return { count };
   }
 
+  /**
+   * Deletes a matching record from the JSON file.
+   */
   async delete(args: { where: any }) {
     const data = readTable(this.tableName);
     const index = data.findIndex((item: any) => matches(item, args.where));
     if (index === -1) {
-      throw new Error(`Record to delete not found in table ${this.tableName}`);
+      throw new Error(`Record to delete not found in JSON table ${this.tableName}`);
     }
     
     const deleted = data.splice(index, 1)[0];
@@ -277,6 +349,9 @@ class JsonTableClient {
     return deleted;
   }
 
+  /**
+   * Deletes all matching records from the JSON file.
+   */
   async deleteMany(args?: { where?: any }) {
     const data = readTable(this.tableName);
     const beforeCount = data.length;
@@ -286,6 +361,9 @@ class JsonTableClient {
     return { count: beforeCount - filtered.length };
   }
 
+  /**
+   * Counts the number of matching records in the JSON file.
+   */
   async count(args?: any) {
     const data = readTable(this.tableName);
     const filtered = data.filter((item: any) => matches(item, args?.where));
@@ -293,6 +371,10 @@ class JsonTableClient {
   }
 }
 
+/**
+ * Mock Prisma Client that delegates all queries to local JSON files in `data/`.
+ * Allows the entire application to use Prisma-like semantics while persisting to JSON.
+ */
 class MockPrismaClient {
   service = new JsonTableClient('service');
   question = new JsonTableClient('question');
@@ -302,6 +384,9 @@ class MockPrismaClient {
   quotation = new JsonTableClient('quotation');
   quotationItem = new JsonTableClient('quotationItem');
 
+  /**
+   * Simulates transaction execution (runs callback directly against the JSON client).
+   */
   async $transaction(arg: any) {
     if (typeof arg === 'function') {
       return await arg(this);
@@ -316,9 +401,11 @@ class MockPrismaClient {
   }
 
   async $disconnect() {
-    // No-op for mock client
+    // No-op for JSON file store (no persistent connection pool needed)
   }
 }
 
+// Export the singleton instance simulating Prisma for the app
 export const prisma = new MockPrismaClient();
+
 

@@ -1,3 +1,16 @@
+/**
+ * ============================================================================
+ * JSON Data Store Type Definitions
+ * ============================================================================
+ * 
+ * These TypeScript interfaces represent the data structure of records persisted
+ * in the flat JSON files inside the `data/` directory (e.g., services.json,
+ * customers.json, quotations.json, etc.).
+ */
+
+/**
+ * Service Model - Represents an item in `data/services.json`
+ */
 export interface Service {
   id: number;
   name: string;
@@ -11,6 +24,9 @@ export interface Service {
   serviceRules?: ServiceRule[];
 }
 
+/**
+ * Question Model - Represents a questionnaire prompt in `data/questions.json`
+ */
 export interface Question {
   id: number;
   question: string;
@@ -22,6 +38,9 @@ export interface Question {
   createdAt: Date | string;
 }
 
+/**
+ * ServiceRule Model - Represents rule mapping in `data/service_rules.json`
+ */
 export interface ServiceRule {
   id: number;
   serviceId: number;
@@ -32,6 +51,9 @@ export interface ServiceRule {
   service?: Service;
 }
 
+/**
+ * Customer Model - Represents lead/client details in `data/customers.json`
+ */
 export interface Customer {
   id: string;
   name: string;
@@ -41,6 +63,9 @@ export interface Customer {
   createdAt: Date | string;
 }
 
+/**
+ * Assessment Model - Represents submitted questions & AI answers in `data/assessments.json`
+ */
 export interface Assessment {
   id: string;
   customerId: string | null;
@@ -51,6 +76,9 @@ export interface Assessment {
   updatedAt: Date | string;
 }
 
+/**
+ * Quotation Model - Represents generated quote headers in `data/quotations.json`
+ */
 export interface Quotation {
   id: string;
   quotationNumber: string;
@@ -67,6 +95,9 @@ export interface Quotation {
   updatedAt: Date | string;
 }
 
+/**
+ * QuotationItem Model - Represents service items within a quotation in `data/quotation_items.json`
+ */
 export interface QuotationItem {
   id: number;
   quotationId: string;
@@ -77,3 +108,4 @@ export interface QuotationItem {
   unitPrice: any;
   totalPrice: any;
 }
+

@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db'; // JSON-backed database client (reads/writes data/*.json)
 import { getRecommendedServices } from '@/lib/recommendation';
 import { analyzeRequirements } from '@/lib/ai';
 
+/**
+ * Maps quick-quote feature shorthand keys to exact service names stored in data/services.json
+ */
 const SERVICE_MAPPINGS: Record<string, string> = {
   smm:    '1 Month (Basic) - Social Media Plan',
   linkedin: 'LinkedIn / B2B Social Marketing',
@@ -24,6 +27,9 @@ const SERVICE_MAPPINGS: Record<string, string> = {
   domainSecurity: 'DOMAIN SECURITY',
 };
 
+/**
+ * Default fallback prices used when initializing missing services into data/services.json
+ */
 const DEFAULT_PRICES: Record<string, { min: number; max: number; desc: string; sales: string }> = {
   smm:    { min: 20000, max: 50000,  desc: '1 Month (Basic) - Social Media Plan',     sales: 'Kickstart your social media with professionally managed monthly campaign.' },
   linkedin: { min: 15000, max: 35000, desc: 'LinkedIn / B2B Social Marketing', sales: 'Drive B2B growth and authority on LinkedIn.' },
@@ -45,16 +51,20 @@ const DEFAULT_PRICES: Record<string, { min: number; max: number; desc: string; s
   domainSecurity: { min: 25000, max: 75000, desc: 'DOMAIN SECURITY', sales: 'Advanced DNS security, WHOIS privacy protection, and DNS lock.' },
 };
 
-
+/**
+ * GET /api/quick-quote
+ * Loads base prices from `data/services.json` mapped to quick-quote items.
+ */
 export async function GET() {
   try {
+    // Read services catalog from data/services.json
     const services = await prisma.service.findMany();
     const mappedPrices: Record<string, number> = {};
 
     for (const [key, dbName] of Object.entries(SERVICE_MAPPINGS)) {
       let service = services.find((s) => s.name === dbName);
       
-      // Self-healing: seed any missing services on the fly
+      // If service is missing in services.json, create it automatically
       if (!service) {
         const defaults = DEFAULT_PRICES[key];
         service = await prisma.service.create({
@@ -68,6 +78,7 @@ export async function GET() {
         });
       }
 
+
       mappedPrices[key] = Number(service.minPrice);
     }
 
@@ -78,6 +89,10 @@ export async function GET() {
   }
 }
 
+/**
+ * POST /api/quick-quote
+ * Bulk updates base service prices in `data/services.json`.
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -87,6 +102,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing basePrices' }, { status: 400 });
     }
 
+    // Persist new pricing configurations in data/services.json
     await prisma.$transaction(
       Object.entries(basePrices).map(([key, price]) => {
         const dbName = SERVICE_MAPPINGS[key];
@@ -104,11 +120,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Base prices synchronized successfully' });
   } catch (error) {
-    console.error('Error updating base prices:', error);
+    console.error('Error updating base prices in JSON store:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
+/**
+ * PUT /api/quick-quote
+ * Creates customer record, assessment, AI analysis, and full quotation in `data/*.json`.
+ */
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
@@ -118,7 +138,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Missing clientName' }, { status: 400 });
     }
 
-    // 1. Create or find customer profile
+    // 1. Create or find customer profile in data/customers.json
     let customer = await prisma.customer.findFirst({
       where: { name: { equals: clientName, mode: 'insensitive' } },
     });
@@ -134,7 +154,7 @@ export async function PUT(request: Request) {
       });
     }
 
-    // 2. Fetch services and evaluate rules dynamically to get recommendation rules
+    // 2. Fetch services and rules from data/services.json and data/service_rules.json
     const activeServices = await prisma.service.findMany({
       where: { active: true },
       include: { serviceRules: true },
@@ -153,7 +173,7 @@ export async function PUT(request: Request) {
     // 3. Run AI analysis
     const aiResult = await analyzeRequirements(answersForAI, activeServices, ruleRecommended);
 
-    // 4. Log client assessment survey details
+    // 4. Log client assessment survey details in data/assessments.json
     const assessment = await prisma.assessment.create({
       data: {
         customerId: customer.id,
@@ -174,7 +194,7 @@ export async function PUT(request: Request) {
       },
     });
 
-    // 5. Create Quotation record
+    // 5. Create Quotation header and line items in data/quotations.json & data/quotation_items.json
     const year = new Date().getFullYear();
     const random = Math.floor(1000 + Math.random() * 9000);
     const quotationNumber = `QT-${year}-${random}`;
@@ -220,7 +240,8 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ quotationId: quotation.id, quotationNumber });
   } catch (error) {
-    console.error('Error saving quick quote:', error);
+    console.error('Error saving quick quote to JSON store:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

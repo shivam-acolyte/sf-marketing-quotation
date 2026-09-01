@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db'; // JSON-backed database client (reads/writes data/services.json)
 
+/**
+ * PUT /api/services/[id]
+ * Updates an existing service record inside `data/services.json`.
+ */
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,6 +22,7 @@ export async function PUT(
     if (body.salesDescription !== undefined) updateData.salesDescription = body.salesDescription;
     if (body.active !== undefined) updateData.active = Boolean(body.active);
 
+    // Update service record in data/services.json
     const service = await prisma.service.update({
       where: { id: serviceId },
       data: updateData,
@@ -25,7 +30,8 @@ export async function PUT(
     
     return NextResponse.json(service);
   } catch (error) {
-    console.error('Error updating service:', error);
+    console.error('Error updating service in JSON store:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
