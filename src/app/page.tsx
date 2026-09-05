@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
+import type { Question } from '@/types/db';
 
-// Constant labels for drop-downs and selections
+// Constant labels for drop-downs and selections (English / English written in Hindi)
 const industryLabels: Record<string, string> = {
   ecommerce: "Retail / E-commerce",
   d2c: "D2C Brand",
@@ -19,45 +20,48 @@ const industryLabels: Record<string, string> = {
 const goalLabels: Record<string, string> = {
   awareness: "Brand Awareness",
   leads: "Lead Generation",
-  sales: "Sales / Conversions",
+  sales: "Sales & Conversions",
   social: "Social Media Growth",
   traffic: "Website Traffic"
 };
 
 const stageLabels: Record<string, string> = {
-  new: "New / Startup",
-  growing: "Growing",
-  established: "Established"
+  new: "< 1 year (Startup)",
+  growing: "1–3 years (Growing)",
+  established: "3–5 years (Established)",
+  established_5plus: "5+ years (Well-established)"
 };
 
 
 
-const allServiceKeys = ['gmb','web','ecomm','wa','smm','linkedin','content','seo','ads','infl','logo','pitch','orm'];
+
+const allServiceKeys = ['gmb', 'web', 'ecomm', 'wa', 'smm', 'linkedin', 'content', 'seo', 'ads', 'infl', 'logo', 'pitch', 'orm'];
 
 const INDUSTRY_RELEVANCE: Record<string, Record<string, number>> = {
-  ecommerce:     {smm:8, linkedin:3, ads:9, seo:8, web:5, ecomm:9, content:6, wa:7, infl:6, gmb:5, logo:6, pitch:3, orm:6},
-  d2c:           {smm:9, linkedin:3, ads:8, seo:6, web:5, ecomm:8, content:8, wa:6, infl:9, gmb:3, logo:7, pitch:3, orm:6},
-  services:      {smm:5, linkedin:9, ads:6, seo:8, web:8, ecomm:1, content:6, wa:7, infl:2, gmb:9, logo:6, pitch:9, orm:8},
-  manufacturing: {smm:3, linkedin:8, ads:4, seo:7, web:8, ecomm:1, content:5, wa:6, infl:1, gmb:6, logo:5, pitch:8, orm:5},
-  fnb:           {smm:9, linkedin:2, ads:6, seo:4, web:5, ecomm:2, content:7, wa:6, infl:7, gmb:9, logo:6, pitch:2, orm:9},
-  healthcare:    {smm:4, linkedin:6, ads:5, seo:8, web:8, ecomm:1, content:6, wa:7, infl:2, gmb:9, logo:6, pitch:5, orm:9},
-  education:     {smm:6, linkedin:6, ads:6, seo:7, web:7, ecomm:2, content:8, wa:7, infl:3, gmb:5, logo:6, pitch:6, orm:7},
-  realestate:    {smm:6, linkedin:7, ads:7, seo:7, web:8, ecomm:1, content:5, wa:8, infl:3, gmb:9, logo:6, pitch:7, orm:8},
-  other:         {smm:5, linkedin:5, ads:5, seo:5, web:5, ecomm:2, content:5, wa:5, infl:5, gmb:5, logo:5, pitch:5, orm:5},
+  ecommerce: { smm: 8, linkedin: 3, ads: 9, seo: 8, web: 5, ecomm: 9, content: 6, wa: 7, infl: 6, gmb: 5, logo: 6, pitch: 3, orm: 6 },
+  d2c: { smm: 9, linkedin: 3, ads: 8, seo: 6, web: 5, ecomm: 8, content: 8, wa: 6, infl: 9, gmb: 3, logo: 7, pitch: 3, orm: 6 },
+  services: { smm: 5, linkedin: 9, ads: 6, seo: 8, web: 8, ecomm: 1, content: 6, wa: 7, infl: 2, gmb: 9, logo: 6, pitch: 9, orm: 8 },
+  manufacturing: { smm: 3, linkedin: 8, ads: 4, seo: 7, web: 8, ecomm: 1, content: 5, wa: 6, infl: 1, gmb: 6, logo: 5, pitch: 8, orm: 5 },
+  fnb: { smm: 9, linkedin: 2, ads: 6, seo: 4, web: 5, ecomm: 2, content: 7, wa: 6, infl: 7, gmb: 9, logo: 6, pitch: 2, orm: 9 },
+  healthcare: { smm: 4, linkedin: 6, ads: 5, seo: 8, web: 8, ecomm: 1, content: 6, wa: 7, infl: 2, gmb: 9, logo: 6, pitch: 5, orm: 9 },
+  education: { smm: 6, linkedin: 6, ads: 6, seo: 7, web: 7, ecomm: 2, content: 8, wa: 7, infl: 3, gmb: 5, logo: 6, pitch: 6, orm: 7 },
+  realestate: { smm: 6, linkedin: 7, ads: 7, seo: 7, web: 8, ecomm: 1, content: 5, wa: 8, infl: 3, gmb: 9, logo: 6, pitch: 7, orm: 8 },
+  other: { smm: 5, linkedin: 5, ads: 5, seo: 5, web: 5, ecomm: 2, content: 5, wa: 5, infl: 5, gmb: 5, logo: 5, pitch: 5, orm: 5 },
 };
 
 const GOAL_BOOST: Record<string, Record<string, number>> = {
-  awareness: {smm:3, content:3, infl:2, linkedin:2, orm:1},
-  leads:     {ads:3, wa:3, seo:1, pitch:3, linkedin:2},
-  sales:     {ads:3, seo:2, web:1, ecomm:3, pitch:2},
-  social:    {smm:3, infl:3, linkedin:2},
-  traffic:   {seo:3, content:2, ads:1},
+  awareness: { smm: 3, content: 3, infl: 2, linkedin: 2, orm: 1 },
+  leads: { ads: 3, wa: 3, seo: 1, pitch: 3, linkedin: 2 },
+  sales: { ads: 3, seo: 2, web: 1, ecomm: 3, pitch: 2 },
+  social: { smm: 3, infl: 3, linkedin: 2 },
+  traffic: { seo: 3, content: 2, ads: 1 },
 };
 
 const STAGE_BOOST: Record<string, Record<string, number>> = {
-  new:         {content:2, web:2, gmb:1, logo:3, pitch:2},
-  growing:     {ads:1, seo:1, orm:1},
-  established: {ads:2, seo:1, orm:2, linkedin:1},
+  new: { content: 2, web: 2, gmb: 1, logo: 3, pitch: 2 },
+  growing: { ads: 1, seo: 1, orm: 1 },
+  established: { ads: 2, seo: 1, orm: 2, linkedin: 1 },
+  established_5plus: { ads: 2, seo: 1, orm: 2, linkedin: 1 },
 };
 
 const resolveWebsiteConflict = (list: string[], scores: Record<string, number>): string[] => {
@@ -135,7 +139,7 @@ const getDynamicServiceName = (serviceKey: string, industry: string): string => 
     if (industry === 'fnb') return "Local Food Bloggers review campaign invitations setup";
     return "Micro-Influencer Outreach campaigns listing";
   }
-  
+
   const defaults: Record<string, string> = {
     smm: "Social Media Management (Instagram/FB)",
     linkedin: "LinkedIn / B2B Social Marketing",
@@ -172,14 +176,27 @@ export default function Home() {
   const [tertiaryGoal, setTertiaryGoal] = useState('none');
   const [presence, setPresence] = useState<string[]>([]);
   const [statedBudget, setStatedBudget] = useState(0);
+  const [formStep, setFormStep] = useState<number>(1);
+  const [requirementStep, setRequirementStep] = useState<number>(1);
+
+  // Current Presence granular states
+  const [hasWebsite, setHasWebsite] = useState<boolean | null>(null);
+  const [websiteImprovement, setWebsiteImprovement] = useState<boolean>(false);
+
+  const [hasSocial, setHasSocial] = useState<boolean | null>(null);
+  const [socialImprovement, setSocialImprovement] = useState<boolean>(false);
+
+  const [hasGmb, setHasGmb] = useState<boolean | null>(null);
+  const [gmbImprovement, setGmbImprovement] = useState<boolean>(false);
+
+  const [noneOfThese, setNoneOfThese] = useState<boolean>(false);
 
   // AI Category Auto-Detect State
   const [businessDescription, setBusinessDescription] = useState('');
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectionResult, setDetectionResult] = useState('');
 
-  // Admin Config State
-  const [adminOpen, setAdminOpen] = useState(false);
+  // Base pricing and multipliers
   const [basePrices, setBasePrices] = useState({
     smm: 20000,
     linkedin: 15000,
@@ -209,7 +226,87 @@ export default function Home() {
 
   // UI state
   const [copiedShow, setCopiedShow] = useState(false);
-  const [savingPrices, setSavingPrices] = useState(false);
+  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Dynamic Survey Questions loaded from control panel
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [dynamicAnswers, setDynamicAnswers] = useState<Record<number, any>>({});
+  const [dynamicFollowUps, setDynamicFollowUps] = useState<Record<number, boolean>>({});
+
+  const loadQuestions = async () => {
+    try {
+      const res = await fetch('/api/questions', { cache: 'no-store' });
+      if (res.ok) {
+        const data: Question[] = await res.json();
+        setQuestions(data);
+      }
+    } catch (err) {
+      console.error('Failed to load questions:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadQuestions();
+    const handleFocus = () => loadQuestions();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  const page1Questions = questions
+    .filter(q => (q.page ?? 1) === 1 && q.active !== false)
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+  const page2Questions = questions
+    .filter(q => (q.page ?? 1) === 2 && q.active !== false)
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+  const page3Questions = questions
+    .filter(q => (q.page ?? 1) === 3 && q.active !== false)
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+  const isPage1Valid = page1Questions.length === 0 || page1Questions.every(q => {
+    if (!q.required) return true;
+    if (q.id === 1) return Boolean(clientName.trim());
+    if (q.id === 2) return Boolean(clientCity.trim());
+    if (q.id === 6) return Boolean(salesperson.trim());
+    if (q.id === 4) return Boolean(industry);
+    if (q.id === 5) return Boolean(stage);
+    if (dynamicAnswers[q.id] !== undefined) return Boolean(String(dynamicAnswers[q.id]).trim());
+    return true;
+  });
+
+  const isPage2Valid = page2Questions.length === 0 || page2Questions.every(q => {
+    if (!q.required) return true;
+    if (q.id === 1) return Boolean(clientName.trim());
+    if (q.id === 2) return Boolean(clientCity.trim());
+    if (q.id === 6) return Boolean(salesperson.trim());
+    if (q.id === 7) return hasWebsite !== null;
+    if (q.id === 8) return hasSocial !== null;
+    if (q.id === 9) return hasGmb !== null;
+    if (dynamicAnswers[q.id] !== undefined) return Boolean(String(dynamicAnswers[q.id]).trim());
+    return true;
+  });
+
+  // Form validity check: required fields must be filled
+  const isFormValid = Boolean(
+    clientName.trim() &&
+    clientCity.trim() &&
+    salesperson.trim() &&
+    industry &&
+    stage &&
+    goal
+  );
+
+  // Trigger analysis and build quotation
+  const handleAnalyzeNow = () => {
+    if (!isFormValid) return;
+    setIsAnalyzing(true);
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      setIsAnalyzed(true);
+    }, 450);
+  };
 
   // Fetch prices from database on mount
   useEffect(() => {
@@ -257,32 +354,45 @@ export default function Home() {
     }
   };
 
-  // Save updated base prices to database
-  const handleSaveBasePrices = async () => {
-    setSavingPrices(true);
-    try {
-      const res = await fetch('/api/quick-quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ basePrices }),
-      });
-      if (res.ok) {
-        alert('Base prices successfully saved locally!');
-      } else {
-        alert('Failed to save prices.');
-      }
-    } catch (error) {
-      console.error('Error saving prices:', error);
-      alert('Network error saving prices.');
-    } finally {
-      setSavingPrices(false);
-    }
-  };
-
   // Helper formatting currency
   const fmt = (n: number) => "₹" + Math.round(n).toLocaleString('en-IN');
 
-  // Multi-checkbox toggling
+  // Granular presence toggle handlers
+  const handleWebsiteToggle = (val: boolean) => {
+    setHasWebsite(val);
+    if (!val) setWebsiteImprovement(false);
+    if (val) setNoneOfThese(false);
+    setIsAnalyzed(false);
+  };
+
+  const handleSocialToggle = (val: boolean) => {
+    setHasSocial(val);
+    if (!val) setSocialImprovement(false);
+    if (val) setNoneOfThese(false);
+    setIsAnalyzed(false);
+  };
+
+  const handleGmbToggle = (val: boolean) => {
+    setHasGmb(val);
+    if (!val) setGmbImprovement(false);
+    if (val) setNoneOfThese(false);
+    setIsAnalyzed(false);
+  };
+
+  const handleNoneOfTheseToggle = (checked: boolean) => {
+    setNoneOfThese(checked);
+    if (checked) {
+      setHasWebsite(false);
+      setWebsiteImprovement(false);
+      setHasSocial(false);
+      setSocialImprovement(false);
+      setHasGmb(false);
+      setGmbImprovement(false);
+    }
+    setIsAnalyzed(false);
+  };
+
+  // Multi-checkbox toggling (backwards compatibility)
   const handlePresenceChange = (val: string) => {
     if (val === 'none') {
       setPresence(['none']);
@@ -298,21 +408,602 @@ export default function Home() {
     }
   };
 
+  // Dynamic Question Renderer
+  const renderQuestion = (q: Question) => {
+    // 1. Core question mapping
+    if (q.id === 1) {
+      return (
+        <div key={q.id} className="field">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
+            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
+              {q.description}
+            </p>
+          )}
+          <input
+            type="text"
+            value={clientName}
+            onChange={(e) => {
+              setClientName(e.target.value);
+              setIsAnalyzed(false);
+            }}
+            placeholder="e.g. Meera Handicrafts"
+          />
+        </div>
+      );
+    }
+
+    if (q.id === 2) {
+      return (
+        <div key={q.id} className="field">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
+            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
+              {q.description}
+            </p>
+          )}
+          <input
+            type="text"
+            value={clientCity}
+            onChange={(e) => {
+              setClientCity(e.target.value);
+              setIsAnalyzed(false);
+            }}
+            placeholder="e.g. Jaipur"
+          />
+        </div>
+      );
+    }
+
+    if (q.id === 3) {
+      return (
+        <div key={q.id} className="field auto-detect-card">
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
+            <span>{q.question}</span>
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
+              {q.description}
+            </p>
+          )}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="text"
+              value={businessDescription}
+              onChange={(e) => setBusinessDescription(e.target.value)}
+              placeholder="e.g. Apne business ka naam likhe"
+              style={{ flex: 1, height: '46px' }}
+            />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleAutoDetectCategory}
+              disabled={isDetecting || !businessDescription.trim()}
+              style={{
+                padding: '0 16px',
+                height: '46px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                minWidth: '120px',
+                justifyContent: 'center',
+                fontSize: '15px'
+              }}
+            >
+              {isDetecting ? (
+                <>
+                  <span className="spinner-mini"></span>
+                  Detecting...
+                </>
+              ) : (
+                <>
+                  <i className="ti ti-sparkles"></i>
+                  Find industry
+                </>
+              )}
+            </button>
+          </div>
+          {detectionResult && (
+            <div style={{ fontSize: '14px', marginTop: '6px', color: 'var(--green-dark)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <i className="ti ti-circle-check" style={{ color: 'var(--green)', fontSize: '16px' }}></i>
+              <span>Category selected: <strong>{industryLabels[detectionResult] || detectionResult}</strong></span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (q.id === 4) {
+      const opts = Array.isArray(q.options) && q.options.length > 0 ? q.options : Object.values(industryLabels);
+      return (
+        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end' }}>
+          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600, fontSize: '16px', margin: 0, lineHeight: 1.25 }}>
+              {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+            </label>
+            {q.description && (
+              <p style={{ fontSize: '13.5px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.description}>
+                {q.description}
+              </p>
+            )}
+          </div>
+          <select
+            value={industry}
+            onChange={(e) => {
+              setIndustry(e.target.value);
+              setIsAnalyzed(false);
+            }}
+            style={{ marginTop: '6px' }}
+          >
+            {opts.map((opt: string, idx: number) => {
+              const key = Object.keys(industryLabels).find(k => industryLabels[k].toLowerCase() === opt.toLowerCase()) || opt.toLowerCase().replace(/[^a-z0-9]/g, '');
+              return (
+                <option key={idx} value={key}>
+                  {opt}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      );
+    }
+
+    if (q.id === 5) {
+      const opts = Array.isArray(q.options) && q.options.length > 0 ? q.options : Object.values(stageLabels);
+      return (
+        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end' }}>
+          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600, fontSize: '16px', margin: 0, lineHeight: 1.25 }}>
+              {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+            </label>
+            {q.description && (
+              <p style={{ fontSize: '13.5px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.description}>
+                {q.description}
+              </p>
+            )}
+          </div>
+          <select
+            value={stage}
+            onChange={(e) => {
+              setStage(e.target.value);
+              setIsAnalyzed(false);
+            }}
+            style={{ marginTop: '6px' }}
+          >
+            {opts.map((opt: string, idx: number) => {
+              const stageKeys = ['new', 'growing', 'established', 'established_5plus'];
+              const key = Object.keys(stageLabels).find(k => stageLabels[k].toLowerCase() === opt.toLowerCase()) || stageKeys[idx] || opt.toLowerCase().replace(/[^a-z0-9]/g, '');
+              return (
+                <option key={idx} value={key}>
+                  {opt}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      );
+    }
+
+    if (q.id === 6) {
+      return (
+        <div key={q.id} className="field">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
+            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
+              {q.description}
+            </p>
+          )}
+          <input
+            type="text"
+            value={salesperson}
+            onChange={(e) => {
+              setSalesperson(e.target.value);
+              setIsAnalyzed(false);
+            }}
+            placeholder="Your name"
+          />
+        </div>
+      );
+    }
+
+    if (q.id === 7) {
+      return (
+        <div key={q.id} className="presence-item">
+          <div className="presence-item-header">
+            <div className="presence-info">
+              <div className="presence-title">
+                <i className="ti ti-world" style={{ color: 'var(--green-dark)', marginRight: '8px', fontSize: '18px' }}></i>
+                <strong>{q.question}</strong>
+              </div>
+              <div className="presence-sub">{q.description || 'Do they have an active website?'}</div>
+            </div>
+            <div className="yes-no-group">
+              <button
+                type="button"
+                onClick={() => handleWebsiteToggle(true)}
+                className={`yn-btn ${hasWebsite === true ? 'active-yes' : ''}`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => handleWebsiteToggle(false)}
+                className={`yn-btn ${hasWebsite === false ? 'active-no' : ''}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+          {hasWebsite === true && q.hasFollowUp && (
+            <div className="improvement-reveal">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={websiteImprovement}
+                  onChange={(e) => {
+                    setWebsiteImprovement(e.target.checked);
+                    setIsAnalyzed(false);
+                  }}
+                />
+                <span>{q.followUpText || 'Want improvement / Redesign'}</span>
+              </label>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (q.id === 8) {
+      return (
+        <div key={q.id} className="presence-item">
+          <div className="presence-item-header">
+            <div className="presence-info">
+              <div className="presence-title">
+                <i className="ti ti-brand-instagram" style={{ color: '#e1306c', marginRight: '8px', fontSize: '18px' }}></i>
+                <strong>{q.question}</strong>
+              </div>
+              <div className="presence-sub">{q.description || 'Active profiles on Instagram / Facebook / LinkedIn?'}</div>
+            </div>
+            <div className="yes-no-group">
+              <button
+                type="button"
+                onClick={() => handleSocialToggle(true)}
+                className={`yn-btn ${hasSocial === true ? 'active-yes' : ''}`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSocialToggle(false)}
+                className={`yn-btn ${hasSocial === false ? 'active-no' : ''}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+          {hasSocial === true && q.hasFollowUp && (
+            <div className="improvement-reveal">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={socialImprovement}
+                  onChange={(e) => {
+                    setSocialImprovement(e.target.checked);
+                    setIsAnalyzed(false);
+                  }}
+                />
+                <span>{q.followUpText || 'Want improvement / Growth & Management'}</span>
+              </label>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (q.id === 9) {
+      return (
+        <div key={q.id} className="presence-item">
+          <div className="presence-item-header">
+            <div className="presence-info">
+              <div className="presence-title">
+                <i className="ti ti-map-pin" style={{ color: '#ea4335', marginRight: '8px', fontSize: '18px' }}></i>
+                <strong>{q.question}</strong>
+              </div>
+              <div className="presence-sub">{q.description || 'Google Maps listing verified & active?'}</div>
+            </div>
+            <div className="yes-no-group">
+              <button
+                type="button"
+                onClick={() => handleGmbToggle(true)}
+                className={`yn-btn ${hasGmb === true ? 'active-yes' : ''}`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGmbToggle(false)}
+                className={`yn-btn ${hasGmb === false ? 'active-no' : ''}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+          {hasGmb === true && q.hasFollowUp && (
+            <div className="improvement-reveal">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={gmbImprovement}
+                  onChange={(e) => {
+                    setGmbImprovement(e.target.checked);
+                    setIsAnalyzed(false);
+                  }}
+                />
+                <span>{q.followUpText || 'Want improvement / Ranking & Reviews'}</span>
+              </label>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (q.id === 10) {
+      return (
+        <div key={q.id} className="none-of-these-wrapper">
+          <label className="checkbox-label none-label">
+            <input
+              type="checkbox"
+              checked={noneOfThese}
+              onChange={(e) => handleNoneOfTheseToggle(e.target.checked)}
+            />
+            <span><strong>{q.question}</strong></span>
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '4px 0 0 28px', lineHeight: 1.35 }}>
+              {q.description}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    // 2. Generic / Custom Questions added by admin
+    if (q.questionType === 'yes_no') {
+      const isTriggered = dynamicAnswers[q.id] === (q.followUpTrigger || 'Yes');
+      return (
+        <div key={q.id} className="presence-item">
+          <div className="presence-item-header">
+            <div className="presence-info">
+              <div className="presence-title">
+                <strong>{q.question}</strong>
+                {q.required && <span style={{ color: 'var(--red)', marginLeft: '4px' }}>*</span>}
+              </div>
+              {q.description && <div className="presence-sub">{q.description}</div>}
+            </div>
+            <div className="yes-no-group">
+              <button
+                type="button"
+                onClick={() => {
+                  setDynamicAnswers(prev => ({ ...prev, [q.id]: 'Yes' }));
+                  setIsAnalyzed(false);
+                }}
+                className={`yn-btn ${dynamicAnswers[q.id] === 'Yes' ? 'active-yes' : ''}`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDynamicAnswers(prev => ({ ...prev, [q.id]: 'No' }));
+                  setDynamicFollowUps(prev => ({ ...prev, [q.id]: false }));
+                  setIsAnalyzed(false);
+                }}
+                className={`yn-btn ${dynamicAnswers[q.id] === 'No' ? 'active-no' : ''}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+          {q.hasFollowUp && isTriggered && (
+            <div className="improvement-reveal">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={Boolean(dynamicFollowUps[q.id])}
+                  onChange={(e) => {
+                    setDynamicFollowUps(prev => ({ ...prev, [q.id]: e.target.checked }));
+                    setIsAnalyzed(false);
+                  }}
+                />
+                <span>{q.followUpText || 'Selected'}</span>
+              </label>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (q.questionType === 'text') {
+      return (
+        <div key={q.id} className="field">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
+            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.4 }}>
+              {q.description}
+            </p>
+          )}
+          <input
+            type="text"
+            value={dynamicAnswers[q.id] || ''}
+            onChange={(e) => {
+              setDynamicAnswers(prev => ({ ...prev, [q.id]: e.target.value }));
+              setIsAnalyzed(false);
+            }}
+            placeholder="Enter response..."
+          />
+        </div>
+      );
+    }
+
+    if (q.questionType === 'single_choice') {
+      const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []);
+      return (
+        <div key={q.id} className="field">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
+            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.4 }}>
+              {q.description}
+            </p>
+          )}
+          <select
+            value={dynamicAnswers[q.id] || ''}
+            onChange={(e) => {
+              setDynamicAnswers(prev => ({ ...prev, [q.id]: e.target.value }));
+              setIsAnalyzed(false);
+            }}
+          >
+            <option value="">Select option...</option>
+            {opts.map((opt: string, idx: number) => (
+              <option key={idx} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+
+    if (q.questionType === 'multi_choice') {
+      const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []);
+      const currentVals: string[] = dynamicAnswers[q.id] || [];
+      return (
+        <div key={q.id} className="field">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '6px' }}>
+            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+          </label>
+          {q.description && (
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '0 0 8px 0', lineHeight: 1.4 }}>
+              {q.description}
+            </p>
+          )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {opts.map((opt: string, idx: number) => {
+              const isSel = currentVals.includes(opt);
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    const updated = isSel ? currentVals.filter(v => v !== opt) : [...currentVals, opt];
+                    setDynamicAnswers(prev => ({ ...prev, [q.id]: updated }));
+                    setIsAnalyzed(false);
+                  }}
+                  className={`chip ${isSel ? 'on' : ''}`}
+                  style={isSel ? { background: '#ecfdf5', borderColor: 'var(--green)', color: 'var(--green-dark)', fontWeight: 600 } : {}}
+                >
+                  {isSel && <i className="ti ti-check" style={{ marginRight: '4px' }}></i>}
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // Multi-priority business goals selection handler
+  const handleGoalToggle = (opt: string) => {
+    setIsAnalyzed(false);
+
+    // If clicking primary goal
+    if (goal === opt) {
+      if (secondaryGoal !== 'none') {
+        setGoal(secondaryGoal);
+        setSecondaryGoal(tertiaryGoal !== 'none' ? tertiaryGoal : 'none');
+        setTertiaryGoal('none');
+      } else {
+        setGoal('');
+      }
+      return;
+    }
+
+    // If clicking secondary goal
+    if (secondaryGoal === opt) {
+      setSecondaryGoal(tertiaryGoal !== 'none' ? tertiaryGoal : 'none');
+      setTertiaryGoal('none');
+      return;
+    }
+
+    // If clicking tertiary goal
+    if (tertiaryGoal === opt) {
+      setTertiaryGoal('none');
+      return;
+    }
+
+    // Unselected goal clicked: assign to the next open priority tier
+    if (!goal) {
+      setGoal(opt);
+    } else if (secondaryGoal === 'none') {
+      setSecondaryGoal(opt);
+    } else if (tertiaryGoal === 'none') {
+      setTertiaryGoal(opt);
+    } else {
+      // 3 already selected: replace the 3rd (tertiary) goal
+      setTertiaryGoal(opt);
+    }
+  };
+
   // Profile-driven scoring model
   const getScoredServices = () => {
-    const hasWebsite = presence.includes('website');
-    const hasSocial = presence.includes('social');
-    const hasGMB = presence.includes('gmb');
-    const startingFromZero = presence.includes('none') || presence.length === 0;
+    const isStartingFromZero = noneOfThese || (hasWebsite === false && hasSocial === false && hasGmb === false) || presence.includes('none');
 
     const presenceAdj: Record<string, number> = {};
-    const bump = (k: string, v: number) => { 
-      presenceAdj[k] = (presenceAdj[k] || 0) + v; 
+    const bump = (k: string, v: number) => {
+      presenceAdj[k] = (presenceAdj[k] || 0) + v;
     };
-    if (!hasWebsite) { bump('web', 3); bump('ecomm', 3); } else { bump('web', -2); bump('ecomm', -2); }
-    if (!hasSocial) { bump('smm', 2); bump('linkedin', 1); } else { bump('smm', -1); bump('linkedin', -1); }
-    if (!hasGMB) bump('gmb', 3); else bump('gmb', -2);
-    if (startingFromZero) { bump('web', 1); bump('gmb', 1); bump('smm', 1); bump('logo', 2); }
+
+    if (hasWebsite === false || websiteImprovement || !presence.includes('website')) {
+      bump('web', websiteImprovement ? 2 : 3);
+      bump('ecomm', websiteImprovement ? 2 : 3);
+    } else if (hasWebsite === true || presence.includes('website')) {
+      bump('web', -2);
+      bump('ecomm', -2);
+    }
+
+    if (hasSocial === false || socialImprovement || !presence.includes('social')) {
+      bump('smm', socialImprovement ? 2 : 2);
+      bump('linkedin', 1);
+    } else if (hasSocial === true || presence.includes('social')) {
+      bump('smm', -1);
+      bump('linkedin', -1);
+    }
+
+    if (hasGmb === false || gmbImprovement || !presence.includes('gmb')) {
+      bump('gmb', gmbImprovement ? 2 : 3);
+    } else if (hasGmb === true || presence.includes('gmb')) {
+      bump('gmb', -2);
+    }
+
+    if (isStartingFromZero) {
+      bump('web', 1);
+      bump('gmb', 1);
+      bump('smm', 1);
+      bump('logo', 2);
+    }
 
     const goalBoostHighest = GOAL_BOOST[goal] || {};
     const goalBoostSec = GOAL_BOOST[secondaryGoal] || {};
@@ -325,9 +1016,9 @@ export default function Home() {
       const highestModifier = goalBoostHighest[k] || 0;
       const secModifier = goalBoostSec[k] || 0;
       const tertModifier = goalBoostTert[k] || 0;
-      
-      const modifiers = (stageBoost[k] || 0) + (presenceAdj[k] || 0) + 
-                        highestModifier + (secModifier * 0.35) + (tertModifier * 0.35);
+
+      const modifiers = (stageBoost[k] || 0) + (presenceAdj[k] || 0) +
+        highestModifier + (secModifier * 0.35) + (tertModifier * 0.35);
 
       const score = industryScore[k] * 0.7 + modifiers * 0.5;
       scores[k] = Math.round(score * 10) / 10;
@@ -335,10 +1026,10 @@ export default function Home() {
 
     const reasonMap: Record<string, string> = {
       awareness: "brand awareness needs consistent, industry-relevant content and presence",
-      leads:     "lead generation moves fastest through channels this industry's buyers actually use",
-      sales:     "sales conversion needs demand-generation channels that fit how this industry buys",
-      social:    "social growth is prioritized on the platforms most relevant to this industry",
-      traffic:   "traffic growth leans on the discovery channels that work best for this industry",
+      leads: "lead generation moves fastest through channels this industry's buyers actually use",
+      sales: "sales conversion needs demand-generation channels that fit how this industry buys",
+      social: "social growth is prioritized on the platforms most relevant to this industry",
+      traffic: "traffic growth leans on the discovery channels that work best for this industry",
     };
 
     return { scores, reason: reasonMap[goal] || "growth is driven by establishing category relevance" };
@@ -347,36 +1038,36 @@ export default function Home() {
   // Build the Low, Medium, and High plans using the scoring model
   const buildPlans = () => {
     const { scores, reason } = getScoredServices();
-    
+
     const CAT: Record<string, { name: string; type: string; base: number }> = {
-      smm:      { name: getDynamicServiceName('smm', industry),     type: "monthly",  base: basePrices.smm },
-      linkedin: { name: getDynamicServiceName('linkedin', industry),type: "monthly",  base: basePrices.linkedin },
-      ads:      { name: getDynamicServiceName('ads', industry),     type: "monthly",  base: basePrices.ads },
-      seo:      { name: getDynamicServiceName('seo', industry),     type: "monthly",  base: basePrices.seo },
-      web:      { name: getDynamicServiceName('web', industry),     type: "onetime",  base: basePrices.web },
-      ecomm:    { name: getDynamicServiceName('ecomm', industry),   type: "onetime",  base: basePrices.ecomm },
-      content:  { name: getDynamicServiceName('content', industry), type: "monthly",  base: basePrices.content },
-      wa:       { name: getDynamicServiceName('wa', industry),      type: "onetime",  base: basePrices.wa },
-      infl:     { name: getDynamicServiceName('infl', industry),    type: "monthly",  base: basePrices.infl },
-      gmb:      { name: getDynamicServiceName('gmb', industry),     type: "onetime",  base: basePrices.gmb },
-      logo:     { name: getDynamicServiceName('logo', industry),    type: "onetime",  base: basePrices.logo },
-      pitch:    { name: getDynamicServiceName('pitch', industry),   type: "onetime",  base: basePrices.pitch },
-      orm:      { name: getDynamicServiceName('orm', industry),     type: "monthly",  base: basePrices.orm },
-      dam:      { name: getDynamicServiceName('dam', industry),     type: "monthly",  base: basePrices.dam },
-      analytics:{ name: getDynamicServiceName('analytics', industry),type: "monthly",  base: basePrices.analytics },
-      adsSetupBasic:   { name: getDynamicServiceName('adsSetupBasic', industry),  type: "onetime",  base: basePrices.adsSetupBasic },
-      adsSetupPremium: { name: getDynamicServiceName('adsSetupPremium', industry),type: "onetime",  base: basePrices.adsSetupPremium },
-      domainSecurity:  { name: getDynamicServiceName('domainSecurity', industry), type: "onetime",  base: basePrices.domainSecurity },
+      smm: { name: getDynamicServiceName('smm', industry), type: "monthly", base: basePrices.smm },
+      linkedin: { name: getDynamicServiceName('linkedin', industry), type: "monthly", base: basePrices.linkedin },
+      ads: { name: getDynamicServiceName('ads', industry), type: "monthly", base: basePrices.ads },
+      seo: { name: getDynamicServiceName('seo', industry), type: "monthly", base: basePrices.seo },
+      web: { name: getDynamicServiceName('web', industry), type: "onetime", base: basePrices.web },
+      ecomm: { name: getDynamicServiceName('ecomm', industry), type: "onetime", base: basePrices.ecomm },
+      content: { name: getDynamicServiceName('content', industry), type: "monthly", base: basePrices.content },
+      wa: { name: getDynamicServiceName('wa', industry), type: "onetime", base: basePrices.wa },
+      infl: { name: getDynamicServiceName('infl', industry), type: "monthly", base: basePrices.infl },
+      gmb: { name: getDynamicServiceName('gmb', industry), type: "onetime", base: basePrices.gmb },
+      logo: { name: getDynamicServiceName('logo', industry), type: "onetime", base: basePrices.logo },
+      pitch: { name: getDynamicServiceName('pitch', industry), type: "onetime", base: basePrices.pitch },
+      orm: { name: getDynamicServiceName('orm', industry), type: "monthly", base: basePrices.orm },
+      dam: { name: getDynamicServiceName('dam', industry), type: "monthly", base: basePrices.dam },
+      analytics: { name: getDynamicServiceName('analytics', industry), type: "monthly", base: basePrices.analytics },
+      adsSetupBasic: { name: getDynamicServiceName('adsSetupBasic', industry), type: "onetime", base: basePrices.adsSetupBasic },
+      adsSetupPremium: { name: getDynamicServiceName('adsSetupPremium', industry), type: "onetime", base: basePrices.adsSetupPremium },
+      domainSecurity: { name: getDynamicServiceName('domainSecurity', industry), type: "onetime", base: basePrices.domainSecurity },
     };
 
-    const hasWebsite = presence.includes('website');
-    const hasSocial = presence.includes('social');
-    const hasGMB = presence.includes('gmb');
+    const isSiteActive = hasWebsite === true || presence.includes('website');
+    const isSocialActive = hasSocial === true || presence.includes('social');
+    const isGmbActive = hasGmb === true || presence.includes('gmb');
 
     const excludeKeys: string[] = [];
-    if (hasWebsite) excludeKeys.push('web', 'ecomm');
-    if (hasSocial) excludeKeys.push('smm', 'linkedin');
-    if (hasGMB) excludeKeys.push('gmb');
+    if (isSiteActive && !websiteImprovement) excludeKeys.push('web', 'ecomm');
+    if (isSocialActive && !socialImprovement) excludeKeys.push('smm', 'linkedin');
+    if (isGmbActive && !gmbImprovement) excludeKeys.push('gmb');
 
     const availableKeys = allServiceKeys.filter(k => !excludeKeys.includes(k));
     const ranked = availableKeys.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
@@ -469,7 +1160,7 @@ export default function Home() {
   };
 
   const plans = buildPlans();
-  const showEmpty = clientName.trim().length === 0;
+  const showEmpty = !isAnalyzed || !isFormValid;
 
   // Stated budget match logic
   let closestKey: 'low' | 'medium' | 'high' | null = null;
@@ -574,7 +1265,7 @@ export default function Home() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text('Digital Marketing Plans — Low / Medium / High', 14, 22);
-    
+
     // Header metadata
     doc.setTextColor(ink[0], ink[1], ink[2]);
     doc.setFontSize(9);
@@ -700,7 +1391,8 @@ export default function Home() {
   return (
     <div className="startupflora-desk">
       {/* Dynamic styling tags to replicate StartupFlora themes exactly */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         :root {
           --green: #00C49A;
           --green-dark: #2C97B7;
@@ -778,68 +1470,58 @@ export default function Home() {
           border-radius: 20px;
           border: 1px dashed var(--green);
         }
-        .hero {
-          padding: 28px 0 6px;
-        }
-        .hero h1 {
-          font-family: 'Fraunces', serif;
-          font-size: 30px;
-          margin: 0 0 6px;
-          font-weight: 700;
-          color: var(--ink);
-        }
-        .hero p {
-          margin: 0;
-          color: var(--muted);
-          font-size: 14.5px;
-          max-width: 640px;
-        }
         .layout {
           display: grid;
-          grid-template-columns: 400px 1fr;
+          grid-template-columns: 480px 1fr;
           gap: 24px;
-          margin-top: 22px;
+          margin-top: 18px;
           align-items: start;
         }
         @media(max-width: 980px) {
           .layout {
             grid-template-columns: 1fr;
+            gap: 20px;
           }
+        }
+        .form-column {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
         .card {
           background: #fff;
-          border: 1px solid var(--line);
+          border: 1.5px solid var(--line);
           border-radius: 14px;
           padding: 22px 24px;
-        }
-        .card + .card {
-          margin-top: 18px;
+          box-shadow: 0 3px 12px rgba(26, 36, 51, 0.05);
         }
         .card h2 {
           font-family: 'Fraunces', serif;
-          font-size: 17px;
+          font-size: 21px;
           margin: 0 0 4px;
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           color: var(--ink);
         }
         .card h2 .num {
           font-family: 'IBM Plex Mono', monospace;
-          font-size: 11px;
-          color: var(--green);
+          font-size: 15px;
+          color: var(--green-dark);
           background: var(--mint);
-          padding: 2px 7px;
-          border-radius: 5px;
+          padding: 3px 9px;
+          border-radius: 6px;
+          font-weight: 700;
         }
         .card .hint {
-          font-size: 12.5px;
+          font-size: 15.5px;
           color: var(--muted);
           margin: 0 0 16px;
+          line-height: 1.4;
         }
         label {
           display: block;
-          font-size: 12.5px;
+          font-size: 16px;
           font-weight: 600;
           margin-bottom: 6px;
           color: var(--ink);
@@ -847,47 +1529,72 @@ export default function Home() {
         .field {
           margin-bottom: 16px;
         }
+        .field:last-child {
+          margin-bottom: 0;
+        }
         input[type=text], select, input[type=number] {
           width: 100%;
-          padding: 11px 12px;
+          box-sizing: border-box;
+          padding: 10px 14px;
+          height: 46px;
           border: 1.5px solid var(--line);
           border-radius: 9px;
-          font-size: 14px;
+          font-size: 16px;
           font-family: 'Inter', sans-serif;
           background: #fff;
           color: var(--ink);
-          transition: border-color .15s;
+          transition: border-color .15s, box-shadow .15s;
         }
         input[type=text]:focus, select:focus, input[type=number]:focus {
           outline: none;
           border-color: var(--green);
+          box-shadow: 0 0 0 3px rgba(0, 196, 154, 0.15);
         }
         .row2 {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 14px;
+          margin-bottom: 16px;
+        }
+        .row2:last-child {
+          margin-bottom: 0;
+        }
+        .row2 .field {
+          margin-bottom: 0;
         }
         @media(max-width: 520px) {
           .row2 {
             grid-template-columns: 1fr;
+            gap: 12px;
           }
+        }
+        .auto-detect-card {
+          background: #f8faf9;
+          border: 1px solid #e1e7e4;
+          border-radius: 10px;
+          padding: 12px 14px;
+          margin-bottom: 16px;
         }
         .chip-group {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
+          margin-top: 8px;
         }
         .chip {
           border: 1.5px solid var(--line);
           border-radius: 20px;
-          padding: 8px 14px;
-          font-size: 13px;
+          padding: 8px 16px;
+          font-size: 15px;
           cursor: pointer;
           background: #fff;
           user-select: none;
           transition: all .15s;
           font-weight: 500;
           color: var(--ink);
+        }
+        .chip:hover {
+          border-color: var(--green-dark);
         }
         .chip.on {
           background: var(--mint);
@@ -900,25 +1607,305 @@ export default function Home() {
           border-color: var(--green);
           color: #fff;
         }
+        .chip.goal-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+        }
+        .chip.goal-chip.on.goal-chip-primary {
+          background: #ecfdf5;
+          border-color: var(--green);
+          color: #065f46;
+          font-weight: 600;
+        }
+        .chip.goal-chip.on.goal-chip-secondary {
+          background: #f0f9ff;
+          border-color: #0284c7;
+          color: #075985;
+          font-weight: 600;
+        }
+        .chip.goal-chip.on.goal-chip-tertiary {
+          background: #faf5ff;
+          border-color: #7c3aed;
+          color: #6b21a8;
+          font-weight: 600;
+        }
         .presence-note {
-          font-size: 12px;
+          font-size: 15.5px;
           color: var(--muted);
           margin-top: 8px;
+          margin-bottom: 0;
+        }
+        .presence-checklist {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 6px;
+        }
+        .presence-item {
+          background: #f8fafc;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 12px 16px;
+          transition: all .15s ease;
+        }
+        .presence-item:hover {
+          border-color: #cbd5e1;
+        }
+        .presence-item-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .presence-title {
+          font-size: 16.5px;
+          font-weight: 700;
+          color: var(--ink);
+          display: flex;
+          align-items: center;
+        }
+        .presence-sub {
+          font-size: 14.5px;
+          color: var(--muted);
+          margin-top: 3px;
+        }
+        .yes-no-group {
+          display: inline-flex;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+        .yn-btn {
+          padding: 7px 18px;
+          border-radius: 20px;
+          font-size: 15px;
+          font-weight: 600;
+          border: 1.5px solid var(--line);
+          background: #fff;
+          color: var(--ink);
+          cursor: pointer;
+          min-width: 60px;
+          text-align: center;
+          transition: all .15s ease;
+        }
+        .yn-btn:hover {
+          border-color: #94a3b8;
+        }
+        .yn-btn.active-yes {
+          background: var(--green);
+          border-color: var(--green);
+          color: #fff;
+          box-shadow: 0 2px 6px rgba(0, 196, 154, 0.25);
+        }
+        .yn-btn.active-no {
+          background: #64748b;
+          border-color: #64748b;
+          color: #fff;
+        }
+        .improvement-reveal {
+          margin-top: 10px;
+          padding: 9px 14px;
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          border-radius: 8px;
+        }
+        .checkbox-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 15.5px;
+          font-weight: 600;
+          color: #065f46;
+          cursor: pointer;
+          user-select: none;
+        }
+        .checkbox-label input[type=checkbox] {
+          width: 19px;
+          height: 19px;
+          accent-color: var(--green);
+          cursor: pointer;
+        }
+        .none-of-these-wrapper {
+          padding: 12px 16px;
+          background: #f8fafc;
+          border: 1.5px dashed #cbd5e1;
+          border-radius: 10px;
+          margin-top: 6px;
+          transition: all .2s;
+        }
+        .none-of-these-wrapper:hover {
+          border-color: var(--green);
+        }
+        .none-label {
+          color: var(--ink);
+          font-size: 16px;
+        }
+        .goal-step-card {
+          padding: 16px 18px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          margin-bottom: 12px;
+          transition: border-color .2s;
+        }
+        .goal-step-card:hover {
+          border-color: #cbd5e1;
+        }
+        .goal-step-badge {
+          display: inline-block;
+          font-size: 13.5px;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-bottom: 8px;
+        }
+        .goal-step-badge.primary {
+          background: #ecfdf5;
+          color: #065f46;
+          border: 1px solid #a7f3d0;
+        }
+        .goal-step-badge.secondary {
+          background: #f0f9ff;
+          color: #0369a1;
+          border: 1px solid #bae6fd;
+        }
+        .goal-step-badge.tertiary {
+          background: #faf5ff;
+          color: #6b21a8;
+          border: 1px solid #e9d5ff;
+        }
+        .goal-step-badge.budget {
+          background: #fef3c7;
+          color: #92400e;
+          border: 1px solid #fde68a;
+        }
+        .req-stepper {
+          display: flex;
+          align-items: center;
+          background: #f1f5f9;
+          padding: 6px;
+          border-radius: 12px;
+          margin-bottom: 16px;
+          gap: 6px;
+          overflow-x: auto;
+        }
+        .req-step-tab {
+          flex: 1;
+          min-width: 95px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 9px 12px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #64748b;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          transition: all .2s ease;
+          white-space: nowrap;
+        }
+        .req-step-tab:hover {
+          background: rgba(255, 255, 255, 0.8);
+          color: var(--ink);
+        }
+        .req-step-tab.active {
+          background: #fff;
+          color: var(--green-dark);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          font-weight: 700;
+        }
+        .req-step-tab .step-num {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #cbd5e1;
+          color: #fff;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 700;
+        }
+        .req-step-tab.active .step-num {
+          background: var(--green);
+          color: #fff;
+        }
+        .req-step-tab.completed .step-num {
+          background: var(--green);
+          color: #fff;
+        }
+        .req-progress-bar {
+          height: 5px;
+          background: #e2e8f0;
+          border-radius: 3px;
+          margin-bottom: 18px;
+          overflow: hidden;
+        }
+        .req-progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, var(--green), #0284c7);
+          transition: width .3s ease;
+        }
+        .req-step-nav {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #e2e8f0;
+        }
+        .req-nav-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 10px 20px;
+          border-radius: 8px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all .15s ease;
+          border: 1.5px solid transparent;
+        }
+        .req-nav-btn.prev {
+          background: #f1f5f9;
+          color: #475569;
+          border-color: #cbd5e1;
+        }
+        .req-nav-btn.prev:hover {
+          background: #e2e8f0;
+          color: var(--ink);
+        }
+        .req-nav-btn.next {
+          background: var(--green);
+          color: #fff;
+          box-shadow: 0 2px 8px rgba(0, 196, 154, 0.25);
+        }
+        .req-nav-btn.next:hover {
+          background: var(--green-dark);
+        }
+        .req-nav-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
         .plans-empty {
           text-align: center;
-          padding: 70px 20px;
+          padding: 80px 24px;
           color: var(--muted);
         }
         .plans-empty i {
-          font-size: 38px;
+          font-size: 42px;
           color: var(--green);
           opacity: .4;
-          margin-bottom: 12px;
+          margin-bottom: 14px;
           display: block;
         }
         .plans-empty p {
-          font-size: 13.5px;
+          font-size: 15px;
           margin: 0;
         }
         .client-strip {
@@ -926,34 +1913,35 @@ export default function Home() {
           justify-content: space-between;
           align-items: baseline;
           flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 16px;
+          gap: 12px;
+          margin-bottom: 20px;
         }
         .client-line {
           font-family: 'Fraunces', serif;
-          font-size: 22px;
+          font-size: 26px;
           color: var(--ink);
         }
         .client-meta {
-          font-size: 12.5px;
+          font-size: 15px;
           color: var(--muted);
+          margin-top: 4px;
         }
         .budget-note {
           font-family: 'IBM Plex Mono', monospace;
-          font-size: 11px;
+          font-size: 13.5px;
           color: var(--orange);
           border: 1px dashed var(--orange);
           border-radius: 20px;
-          padding: 4px 10px;
+          padding: 5px 12px;
           white-space: nowrap;
           display: inline-flex;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
         }
         .plans-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
+          gap: 20px;
         }
         @media(max-width: 900px) {
           .plans-grid {
@@ -963,7 +1951,7 @@ export default function Home() {
         .plan-card {
           border: 1.5px solid var(--line);
           border-radius: 14px;
-          padding: 20px;
+          padding: 24px;
           background: #fff;
           display: flex;
           flex-direction: column;
@@ -980,13 +1968,13 @@ export default function Home() {
         }
         .plan-badge {
           position: absolute;
-          top: -11px;
-          left: 16px;
+          top: -12px;
+          left: 18px;
           font-family: 'IBM Plex Mono', monospace;
-          font-size: 10px;
+          font-size: 12px;
           text-transform: uppercase;
           letter-spacing: .05em;
-          padding: 3px 10px;
+          padding: 4px 12px;
           border-radius: 20px;
           font-weight: 600;
         }
@@ -1000,59 +1988,59 @@ export default function Home() {
         }
         .plan-tier {
           font-family: 'IBM Plex Mono', monospace;
-          font-size: 10.5px;
+          font-size: 13px;
           text-transform: uppercase;
           letter-spacing: .08em;
           color: var(--muted);
-          margin-bottom: 2px;
+          margin-bottom: 4px;
         }
         .plan-name {
           font-family: 'Fraunces', serif;
-          font-size: 19px;
+          font-size: 23px;
           font-weight: 700;
-          margin-bottom: 3px;
+          margin-bottom: 4px;
           color: var(--ink);
         }
         .plan-tagline {
-          font-size: 12px;
+          font-size: 14.5px;
           color: var(--muted);
-          margin-bottom: 14px;
-          min-height: 30px;
-          line-height: 1.4;
+          margin-bottom: 16px;
+          min-height: 42px;
+          line-height: 1.45;
         }
         .plan-price {
-          margin-bottom: 4px;
+          margin-bottom: 6px;
         }
         .plan-price .amt {
           font-family: 'Fraunces', serif;
-          font-size: 26px;
+          font-size: 30px;
           font-weight: 700;
           color: var(--green-dark);
         }
         .plan-price .per {
-          font-size: 12px;
+          font-size: 14px;
           color: var(--muted);
         }
         .plan-setup {
-          font-size: 11.5px;
+          font-size: 13.5px;
           color: var(--muted);
-          margin-bottom: 14px;
+          margin-bottom: 16px;
         }
         .plan-services {
           list-style: none;
-          margin: 0 0 14px;
+          margin: 0 0 16px;
           padding: 0;
           border-top: 1px dashed var(--line);
-          padding-top: 12px;
+          padding-top: 14px;
           flex-grow: 1;
         }
         .plan-services li {
-          padding: 7px 0;
+          padding: 9px 0;
           border-bottom: 1px solid #f1f3f0;
-          font-size: 12.5px;
+          font-size: 14.5px;
           display: flex;
           justify-content: space-between;
-          gap: 8px;
+          gap: 10px;
         }
         .plan-services li:last-child {
           border-bottom: none;
@@ -1060,44 +2048,45 @@ export default function Home() {
         .plan-services .sv-name {
           font-weight: 600;
           color: var(--ink);
+          font-size: 15px;
         }
         .plan-services .sv-scope {
-          font-size: 10.5px;
+          font-size: 13px;
           color: var(--muted);
           font-weight: 400;
-          margin-top: 1px;
+          margin-top: 2px;
         }
         .plan-services .sv-price {
           font-family: 'IBM Plex Mono', monospace;
-          font-size: 11.5px;
+          font-size: 14px;
           white-space: nowrap;
           color: var(--ink);
         }
         .plan-why {
-          font-size: 11.5px;
-          line-height: 1.5;
+          font-size: 13.5px;
+          line-height: 1.55;
           color: var(--muted);
           background: var(--paper);
-          border-left: 2px solid var(--orange);
-          padding: 8px 10px;
-          border-radius: 5px;
+          border-left: 3px solid var(--orange);
+          padding: 10px 14px;
+          border-radius: 6px;
         }
         .actions {
           display: flex;
-          gap: 10px;
-          margin-top: 20px;
+          gap: 12px;
+          margin-top: 24px;
           flex-wrap: wrap;
         }
         .btn {
           border: none;
           border-radius: 9px;
-          padding: 12px 18px;
-          font-size: 13.5px;
+          padding: 13px 22px;
+          font-size: 15.5px;
           font-weight: 600;
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 7px;
+          gap: 8px;
           font-family: 'Inter', sans-serif;
           transition: transform .1s, opacity .15s;
         }
@@ -1119,59 +2108,6 @@ export default function Home() {
         .btn-secondary:hover {
           background: var(--mint);
         }
-        .admin-toggle {
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 11.5px;
-          color: var(--muted);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-top: 26px;
-          padding-top: 16px;
-          border-top: 1px solid var(--line);
-        }
-        .admin-toggle:hover {
-          color: var(--green-dark);
-        }
-        .admin-panel {
-          display: none;
-          margin-top: 14px;
-        }
-        .admin-panel.open {
-          display: block;
-        }
-        .admin-section-label {
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 10.5px;
-          text-transform: uppercase;
-          letter-spacing: .06em;
-          color: var(--green);
-          margin: 14px 0 6px;
-        }
-        .admin-row {
-          display: grid;
-          grid-template-columns: 1.4fr .8fr .8fr;
-          gap: 10px;
-          align-items: center;
-          padding: 7px 0;
-          border-bottom: 1px solid var(--line);
-          font-size: 12.5px;
-          color: var(--ink);
-        }
-        .admin-row input {
-          padding: 7px 9px;
-          font-size: 12.5px;
-          border-radius: 6px;
-        }
-        .admin-row span.lbl {
-          font-weight: 500;
-        }
-        .admin-panel .save-note {
-          font-size: 11.5px;
-          color: var(--muted);
-          margin-top: 10px;
-        }
         .copied-toast {
           position: fixed;
           bottom: 24px;
@@ -1179,9 +2115,9 @@ export default function Home() {
           transform: translateX(-50%);
           background: var(--green-dark);
           color: #fff;
-          padding: 10px 20px;
+          padding: 12px 24px;
           border-radius: 30px;
-          font-size: 13px;
+          font-size: 15px;
           font-weight: 600;
           opacity: 0;
           pointer-events: none;
@@ -1200,8 +2136,8 @@ export default function Home() {
           to { transform: rotate(360deg); }
         }
         .spinner-mini {
-          width: 14px;
-          height: 14px;
+          width: 16px;
+          height: 16px;
           border: 2px solid rgba(255,255,255,0.3);
           border-top-color: #fff;
           border-radius: 50%;
@@ -1216,7 +2152,7 @@ export default function Home() {
             <div className="brand-mark">SF</div>
             <div>
               <div className="brand-name">StartupFlora</div>
-              <div className="brand-sub">Sahi Hai! · Sales Desk</div>
+              <div className="brand-sub">Sales Desk</div>
             </div>
           </div>
           <div className="tool-tag">Digital Marketing Quotation Tool</div>
@@ -1224,346 +2160,708 @@ export default function Home() {
       </header>
 
       <div className="wrap">
-        <div className="hero">
-          <h1>Quote a client in under a minute</h1>
-          <p>Fill in what you learned on the call. We'll build three ready-to-share plans — Low, Medium, and High — matched to their profile.</p>
-        </div>
-
         <div className="layout">
           {/* LEFT: FORM */}
-          <div>
-            <div className="card">
-              <h2><span className="num">01</span> Client details</h2>
-              <p className="hint">Just the basics — takes 20 seconds.</p>
-              <div className="row2">
-                <div className="field">
-                  <label>Client / business name</label>
-                  <input 
-                    type="text" 
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="e.g. Meera Handicrafts" 
-                  />
+          <div className="form-column">
+            {/* Section 01: Client Details (Step 1 of 3) */}
+            {formStep === 1 && (
+              <div className="card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <h2 style={{ margin: 0 }}><span className="num">01</span> Client details</h2>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--green-dark)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '12px' }}>
+                    Step 1 of 3
+                  </span>
                 </div>
-                <div className="field">
-                  <label>City / region</label>
-                  <input 
-                    type="text" 
-                    value={clientCity}
-                    onChange={(e) => setClientCity(e.target.value)}
-                    placeholder="e.g. Jaipur" 
-                  />
-                </div>
-              </div>
+                <p className="hint" style={{ marginBottom: '16px' }}>Just the basics — takes 20 seconds.</p>
 
-              {/* AI Category Auto-Detect */}
-              <div className="field" style={{ marginTop: '4px', marginBottom: '18px' }}>
-                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>AI Category Auto-Detect</span>
-                  <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 400 }}>Type in Hinglish/English to auto-select Industry</span>
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input 
-                    type="text" 
-                    value={businessDescription}
-                    onChange={(e) => setBusinessDescription(e.target.value)}
-                    placeholder="e.g. ye biscuit ki company hai OR ham log online clothes bechte hain"
-                    style={{ flex: 1 }}
-                  />
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
-                    onClick={handleAutoDetectCategory}
-                    disabled={isDetecting || !businessDescription.trim()}
-                    style={{ 
-                      padding: '0 16px', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '6px', 
-                      whiteSpace: 'nowrap', 
-                      minWidth: '110px', 
-                      justifyContent: 'center',
-                      fontSize: '13px'
+                {/* Render questions assigned to Page 1 with Q4 and Q5 parallel in one line */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {/* Q1, Q2, Q3 or any questions before Q4 */}
+                  {page1Questions
+                    .filter(q => q.id !== 4 && q.id !== 5 && (q.displayOrder ?? q.id) < 4)
+                    .map((q) => renderQuestion(q))}
+
+                  {/* Parallel Row for Industry (Q4) and Business Age (Q5) */}
+                  <div className="row2">
+                    {page1Questions.find(q => q.id === 4)
+                      ? renderQuestion(page1Questions.find(q => q.id === 4)!)
+                      : (questions.find(q => q.id === 4) && renderQuestion(questions.find(q => q.id === 4)!))}
+                    {page1Questions.find(q => q.id === 5)
+                      ? renderQuestion(page1Questions.find(q => q.id === 5)!)
+                      : (questions.find(q => q.id === 5) && renderQuestion(questions.find(q => q.id === 5)!))}
+                  </div>
+
+                  {/* Q6 Salesperson and any other questions on Page 1 */}
+                  {page1Questions
+                    .filter(q => q.id !== 4 && q.id !== 5 && (q.displayOrder ?? q.id) >= 4)
+                    .map((q) => renderQuestion(q))}
+                </div>
+
+                {/* Step 1 Navigation */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
+                    {!isPage1Valid ? (
+                      <span style={{ color: 'var(--red)' }}>* Complete required fields to proceed</span>
+                    ) : (
+                      <span style={{ color: 'var(--green-dark)', fontWeight: 600 }}>✓ Step 1 details complete</span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFormStep(2)}
+                    disabled={!isPage1Valid}
+                    className="btn"
+                    style={{
+                      background: !isPage1Valid ? '#94a3b8' : 'var(--green)',
+                      color: '#fff',
+                      padding: '10px 22px',
+                      borderRadius: '9px',
+                      fontSize: '15.5px',
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: !isPage1Valid ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      boxShadow: isPage1Valid ? '0 2px 8px rgba(0, 196, 154, 0.25)' : 'none'
                     }}
                   >
-                    {isDetecting ? (
-                      <>
-                        <span className="spinner-mini"></span>
-                        Detecting...
-                      </>
-                    ) : (
-                      <>
-                        <i className="ti ti-sparkles"></i>
-                        Auto-Detect
-                      </>
-                    )}
+                    <span>Next</span>
+                    <i className="ti ti-arrow-right"></i>
                   </button>
                 </div>
-                {detectionResult && (
-                  <div style={{ fontSize: '12px', marginTop: '6px', color: 'var(--green-dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="ti ti-circle-check" style={{ color: 'var(--green)', fontSize: '14px' }}></i>
-                    <span>Category selected: <strong>{industryLabels[detectionResult] || detectionResult}</strong></span>
+              </div>
+            )}
+
+            {/* Section 02: Current Digital Presence (Step 2 of 3) */}
+            {formStep === 2 && (
+              <div className="card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <h2 style={{ margin: 0 }}><span className="num">02</span> Current digital presence</h2>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--green-dark)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '12px' }}>
+                    Step 2 of 3
+                  </span>
+                </div>
+
+                <p className="hint" style={{ marginBottom: '16px' }}>Apke Pass Avi kya sab hai.</p>
+
+                {/* Render questions assigned to Page 2 in displayOrder */}
+                <div className="presence-checklist">
+                  {page2Questions.map((q) => renderQuestion(q))}
+                </div>
+
+                {/* Step 2 Navigation */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                  <button
+                    type="button"
+                    onClick={() => setFormStep(1)}
+                    className="btn"
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#475569',
+                      padding: '10px 18px',
+                      borderRadius: '9px',
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      border: '1.5px solid #cbd5e1',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '7px'
+                    }}
+                  >
+                    <i className="ti ti-arrow-left"></i>
+                    <span>Back</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormStep(3)}
+                    disabled={!isPage2Valid}
+                    className="btn"
+                    style={{
+                      background: !isPage2Valid ? '#94a3b8' : 'var(--green)',
+                      color: '#fff',
+                      padding: '10px 22px',
+                      borderRadius: '9px',
+                      fontSize: '15.5px',
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: !isPage2Valid ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      boxShadow: isPage2Valid ? '0 2px 8px rgba(0, 196, 154, 0.25)' : 'none'
+                    }}
+                  >
+                    <span>Next</span>
+                    <i className="ti ti-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Section 03: Requirements & Goals (Step 3 of 3 - Paginated Sub-steps) */}
+            {formStep === 3 && (() => {
+              const qPrimary = page3Questions.find(q => q.id === 11) || questions.find(q => q.id === 11);
+              const qSecondary = page3Questions.find(q => q.id === 12) || questions.find(q => q.id === 12);
+              const qTertiary = page3Questions.find(q => q.id === 13) || questions.find(q => q.id === 13);
+              const qBudget = page3Questions.find(q => q.id === 14) || questions.find(q => q.id === 14);
+              const extraPage3 = page3Questions.filter(q => ![11, 12, 13, 14].includes(q.id));
+
+              const goalOptMap: Record<string, string> = {
+                'Brand Awareness': 'awareness',
+                'Lead Generation': 'leads',
+                'Sales & Conversions': 'sales',
+                'Social Media Growth': 'social',
+                'Website Traffic': 'traffic'
+              };
+
+              const primaryOpts = Array.isArray(qPrimary?.options) && qPrimary.options.length > 0
+                ? qPrimary.options
+                : ['Brand Awareness', 'Lead Generation', 'Sales & Conversions', 'Social Media Growth', 'Website Traffic'];
+
+              const secondaryOpts = Array.isArray(qSecondary?.options) && qSecondary.options.length > 0
+                ? qSecondary.options.filter((o: string) => o.toLowerCase() !== 'none')
+                : ['Brand Awareness', 'Lead Generation', 'Sales & Conversions', 'Social Media Growth', 'Website Traffic'];
+
+              const tertiaryOpts = Array.isArray(qTertiary?.options) && qTertiary.options.length > 0
+                ? qTertiary.options.filter((o: string) => o.toLowerCase() !== 'none')
+                : ['Brand Awareness', 'Lead Generation', 'Sales & Conversions', 'Social Media Growth', 'Website Traffic'];
+
+              const budgetOpts = Array.isArray(qBudget?.options) && qBudget.options.length > 0
+                ? qBudget.options
+                : ['No specific budget', '₹15,000 – 25,000', '₹25,000 – 50,000', '₹50,000 – 1,00,000', '₹1,00,000+'];
+
+              return (
+                <div className="card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <h2 style={{ margin: 0 }}><span className="num">03</span> Requirements & Goals</h2>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', background: '#fef3c7', padding: '3px 10px', borderRadius: '12px' }}>
+                      Step 3 of 3 · Goal {requirementStep} of 4
+                    </span>
                   </div>
-                )}
-              </div>
+                  <p className="hint" style={{ marginBottom: '16px' }}>Configure marketing objectives step-by-step.</p>
 
-              <div className="row2">
-                <div className="field">
-                  <label>Salesperson</label>
-                  <input 
-                    type="text" 
-                    value={salesperson}
-                    onChange={(e) => setSalesperson(e.target.value)}
-                    placeholder="Your name" 
-                  />
-                </div>
-                <div className="field">
-                  <label>Industry</label>
-                  <select 
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                  >
-                    <option value="ecommerce">Retail / E-commerce</option>
-                    <option value="d2c">D2C Brand</option>
-                    <option value="services">Professional Services</option>
-                    <option value="manufacturing">Manufacturing</option>
-                    <option value="fnb">Food & Beverage</option>
-                    <option value="healthcare">Healthcare</option>
-                    <option value="education">Education</option>
-                    <option value="realestate">Real Estate</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+                  {/* Render any custom/extra Page 3 questions */}
+                  {extraPage3.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+                      {extraPage3.map(q => renderQuestion(q))}
+                    </div>
+                  )}
 
-            <div className="card">
-              <h2><span className="num">02</span> Business stage & goal</h2>
-              <div className="field">
-                <label>Business stage</label>
-                <div className="chip-group">
-                  {['new', 'growing', 'established'].map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setStage(opt)}
-                      className={`chip single ${stage === opt ? 'on single' : ''}`}
-                    >
-                      {stageLabels[opt]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="field">
-                <label>Primary Goal (Highest Priority)</label>
-                <div className="chip-group">
-                  {['awareness', 'leads', 'sales', 'social', 'traffic'].map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setGoal(opt)}
-                      className={`chip single ${goal === opt ? 'on single' : ''}`}
-                    >
-                      {goalLabels[opt]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="field">
-                <label>Secondary Goal (Low Priority)</label>
-                <div className="chip-group">
-                  <button
-                    type="button"
-                    onClick={() => setSecondaryGoal('none')}
-                    className={`chip single ${secondaryGoal === 'none' ? 'on single' : ''}`}
-                  >
-                    None
-                  </button>
-                  {['awareness', 'leads', 'sales', 'social', 'traffic'].map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setSecondaryGoal(opt)}
-                      className={`chip single ${secondaryGoal === opt ? 'on single' : ''}`}
-                    >
-                      {goalLabels[opt]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="field">
-                <label>Tertiary Goal (Low Priority)</label>
-                <div className="chip-group">
-                  <button
-                    type="button"
-                    onClick={() => setTertiaryGoal('none')}
-                    className={`chip single ${tertiaryGoal === 'none' ? 'on single' : ''}`}
-                  >
-                    None
-                  </button>
-                  {['awareness', 'leads', 'sales', 'social', 'traffic'].map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setTertiaryGoal(opt)}
-                      className={`chip single ${tertiaryGoal === opt ? 'on single' : ''}`}
-                    >
-                      {goalLabels[opt]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+                  {/* Sub-step 1: Primary Goal */}
+                  {requirementStep === 1 && (
+                    <div className="goal-step-card" style={{ marginBottom: 0 }}>
+                      <div className="goal-step-badge primary">Step 3.1 · Primary Focus</div>
+                      <label style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ink)' }}>
+                        {qPrimary ? qPrimary.question : "Primary Goal (Highest Priority)"} <span style={{ color: 'var(--red)' }}>*</span>
+                      </label>
+                      {qPrimary?.description && (
+                        <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '3px 0 10px 0', lineHeight: 1.35 }}>
+                          {qPrimary.description}
+                        </p>
+                      )}
+                      <div className="chip-group">
+                        {primaryOpts.map((optName: string) => {
+                          const optKey = goalOptMap[optName] || optName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                          return (
+                            <button
+                              key={optName}
+                              type="button"
+                              onClick={() => {
+                                setGoal(optKey);
+                                if (secondaryGoal === optKey) setSecondaryGoal('none');
+                                if (tertiaryGoal === optKey) setTertiaryGoal('none');
+                                setIsAnalyzed(false);
+                              }}
+                              className={`chip single ${goal === optKey ? 'on single' : ''}`}
+                            >
+                              {goal === optKey && <i className="ti ti-check" style={{ marginRight: '5px' }}></i>}
+                              {optName}
+                            </button>
+                          );
+                        })}
+                      </div>
 
-            <div className="card">
-              <h2><span className="num">03</span> Current presence & budget</h2>
-              <div className="field">
-                <label>What does the client already have?</label>
-                <div className="chip-group">
-                  {[
-                    { key: 'website', label: 'Website' },
-                    { key: 'social', label: 'Instagram / Social' },
-                    { key: 'gmb', label: 'Google Business Profile' },
-                    { key: 'none', label: 'None yet' }
-                  ].map((opt) => {
-                    const isChecked = presence.includes(opt.key);
-                    return (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        onClick={() => handlePresenceChange(opt.key)}
-                        className={`chip ${isChecked ? 'on' : ''}`}
+                      <div className="req-step-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
+                        <button
+                          type="button"
+                          onClick={() => setFormStep(2)}
+                          className="req-nav-btn prev"
+                          style={{ padding: '9px 18px', fontSize: '14.5px' }}
+                        >
+                          <i className="ti ti-arrow-left"></i>
+                          <span>Back</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRequirementStep(2)}
+                          disabled={!goal}
+                          className="req-nav-btn next"
+                          style={{ padding: '9px 20px', fontSize: '14.5px' }}
+                        >
+                          <span>Next</span>
+                          <i className="ti ti-arrow-right"></i>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub-step 2: Secondary Goal */}
+                  {requirementStep === 2 && (
+                    <div className="goal-step-card" style={{ marginBottom: 0 }}>
+                      <div className="goal-step-badge secondary">Step 3.2 · Secondary Objective</div>
+                      <label style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ink)' }}>
+                        {qSecondary ? qSecondary.question : "Secondary Goal"} <span style={{ fontWeight: 400, color: 'var(--muted)', fontSize: '13.5px' }}>(Optional)</span>
+                      </label>
+                      {qSecondary?.description && (
+                        <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '3px 0 10px 0', lineHeight: 1.35 }}>
+                          {qSecondary.description}
+                        </p>
+                      )}
+                      <div className="chip-group">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSecondaryGoal('none');
+                            setIsAnalyzed(false);
+                          }}
+                          className={`chip single ${secondaryGoal === 'none' ? 'on single' : ''}`}
+                        >
+                          None
+                        </button>
+                        {secondaryOpts.map((optName: string) => {
+                          const optKey = goalOptMap[optName] || optName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                          return (
+                            <button
+                              key={optName}
+                              type="button"
+                              onClick={() => {
+                                setSecondaryGoal(optKey);
+                                if (goal === optKey) setGoal('');
+                                if (tertiaryGoal === optKey) setTertiaryGoal('none');
+                                setIsAnalyzed(false);
+                              }}
+                              className={`chip ${secondaryGoal === optKey ? 'on' : ''}`}
+                              style={secondaryGoal === optKey ? { background: '#f0f9ff', borderColor: '#0284c7', color: '#075985', fontWeight: 600 } : {}}
+                            >
+                              {secondaryGoal === optKey && <i className="ti ti-check" style={{ marginRight: '5px' }}></i>}
+                              {optName}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="req-step-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
+                        <button
+                          type="button"
+                          onClick={() => setRequirementStep(1)}
+                          className="req-nav-btn prev"
+                          style={{ padding: '9px 18px', fontSize: '14.5px' }}
+                        >
+                          <i className="ti ti-arrow-left"></i>
+                          <span>Back</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRequirementStep(3)}
+                          className="req-nav-btn next"
+                          style={{ padding: '9px 20px', fontSize: '14.5px' }}
+                        >
+                          <span>Next</span>
+                          <i className="ti ti-arrow-right"></i>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub-step 3: Tertiary Goal */}
+                  {requirementStep === 3 && (
+                    <div className="goal-step-card" style={{ marginBottom: 0 }}>
+                      <div className="goal-step-badge tertiary">Step 3.3 · Additional Scope</div>
+                      <label style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ink)' }}>
+                        {qTertiary ? qTertiary.question : "Tertiary Goal"} <span style={{ fontWeight: 400, color: 'var(--muted)', fontSize: '13.5px' }}>(Optional)</span>
+                      </label>
+                      {qTertiary?.description && (
+                        <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '3px 0 10px 0', lineHeight: 1.35 }}>
+                          {qTertiary.description}
+                        </p>
+                      )}
+                      <div className="chip-group">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTertiaryGoal('none');
+                            setIsAnalyzed(false);
+                          }}
+                          className={`chip single ${tertiaryGoal === 'none' ? 'on single' : ''}`}
+                        >
+                          None
+                        </button>
+                        {tertiaryOpts.map((optName: string) => {
+                          const optKey = goalOptMap[optName] || optName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                          return (
+                            <button
+                              key={optName}
+                              type="button"
+                              onClick={() => {
+                                setTertiaryGoal(optKey);
+                                if (secondaryGoal === optKey) setSecondaryGoal('none');
+                                if (tertiaryGoal === optKey) setTertiaryGoal('none');
+                                setIsAnalyzed(false);
+                              }}
+                              className={`chip ${tertiaryGoal === optKey ? 'on' : ''}`}
+                              style={tertiaryGoal === optKey ? { background: '#faf5ff', borderColor: '#7c3aed', color: '#6b21a8', fontWeight: 600 } : {}}
+                            >
+                              {tertiaryGoal === optKey && <i className="ti ti-check" style={{ marginRight: '5px' }}></i>}
+                              {optName}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="req-step-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
+                        <button
+                          type="button"
+                          onClick={() => setRequirementStep(2)}
+                          className="req-nav-btn prev"
+                          style={{ padding: '9px 18px', fontSize: '14.5px' }}
+                        >
+                          <i className="ti ti-arrow-left"></i>
+                          <span>Back</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRequirementStep(4)}
+                          className="req-nav-btn next"
+                          style={{ padding: '9px 20px', fontSize: '14.5px' }}
+                        >
+                          <span>Next</span>
+                          <i className="ti ti-arrow-right"></i>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub-step 4: Client Monthly Budget (Final Step) + ANALYZE BUTTON */}
+                  {requirementStep === 4 && (
+                    <div className="goal-step-card" style={{ marginBottom: 0 }}>
+                      <div className="goal-step-badge budget">Step 3.4 · Final Step · Project Budget</div>
+                      <label style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ink)' }}>
+                        {qBudget ? qBudget.question : "Client's Monthly Budget"} <span style={{ fontWeight: 400, color: 'var(--muted)', fontSize: '13.5px' }}>(optional — for reference)</span>
+                      </label>
+                      {qBudget?.description && (
+                        <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '3px 0 10px 0', lineHeight: 1.35 }}>
+                          {qBudget.description}
+                        </p>
+                      )}
+                      <select
+                        value={statedBudget}
+                        onChange={(e) => {
+                          setStatedBudget(parseInt(e.target.value) || 0);
+                          setIsAnalyzed(false);
+                        }}
                       >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
+                        {budgetOpts.map((optName: string, idx: number) => {
+                          const budgetVals = [0, 15000, 25000, 50000, 100000];
+                          const val = budgetVals[idx] !== undefined ? budgetVals[idx] : parseInt(optName.replace(/[^0-9]/g, '')) || 0;
+                          return (
+                            <option key={idx} value={val}>
+                              {optName}
+                            </option>
+                          );
+                        })}
+                      </select>
+
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
+                        <button
+                          type="button"
+                          onClick={() => setRequirementStep(3)}
+                          className="btn"
+                          style={{
+                            background: '#f1f5f9',
+                            color: '#475569',
+                            padding: '12px 18px',
+                            borderRadius: '9px',
+                            fontSize: '15px',
+                            fontWeight: 600,
+                            border: '1.5px solid #cbd5e1',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          <i className="ti ti-arrow-left"></i>
+                          <span>Back</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={!isFormValid || isAnalyzing}
+                          onClick={handleAnalyzeNow}
+                          className="btn"
+                          style={{
+                            flex: 1,
+                            justifyContent: 'center',
+                            padding: '13px 24px',
+                            fontSize: '16.5px',
+                            fontWeight: 700,
+                            borderRadius: '9px',
+                            cursor: isFormValid ? 'pointer' : 'not-allowed',
+                            opacity: isFormValid ? 1 : 0.55,
+                            background: isFormValid ? 'var(--green)' : '#94a3b8',
+                            color: '#fff',
+                            border: 'none',
+                            boxShadow: isFormValid ? '0 3px 12px rgba(0, 196, 154, 0.3)' : 'none',
+                            transition: 'all 0.2s ease',
+                            gap: '8px'
+                          }}
+                        >
+                          {isAnalyzing ? (
+                            <>
+                              <span className="spinner-mini" style={{ marginRight: '6px' }}></span>
+                              Generating Quotation...
+                            </>
+                          ) : (
+                            <>
+                              <i className="ti ti-sparkles" style={{ fontSize: '18px' }}></i>
+                              Analyze Now
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      {!isFormValid && (
+                        <p style={{ fontSize: '13px', color: 'var(--red)', textAlign: 'center', marginTop: '10px', marginBottom: 0, fontWeight: 500 }}>
+                          * Please complete required client details and select a Primary Goal to enable analysis
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Persistent Live Goals & Budget Summary Strip */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      background: '#f8fafc',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '13.5px',
+                      marginTop: '16px'
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: 'var(--ink)', marginRight: '2px' }}>
+                      Requirements:
+                    </span>
+
+                    {/* Primary Slot */}
+                    <div
+                      onClick={() => setRequirementStep(1)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: '#ecfdf5',
+                        border: '1px solid #a7f3d0',
+                        padding: '3px 8px',
+                        borderRadius: '7px',
+                        color: '#065f46',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                      title="Click to jump to Primary Goal (Step 3.1)"
+                    >
+                      <span style={{
+                        background: 'var(--green)',
+                        color: '#fff',
+                        fontSize: '10.5px',
+                        padding: '2px 5px',
+                        borderRadius: '4px',
+                        fontWeight: 700
+                      }}>1st Primary</span>
+                      <span>{goal ? goalLabels[goal] || goal : 'None'}</span>
+                    </div>
+
+                    {/* Secondary Slot */}
+                    {secondaryGoal !== 'none' ? (
+                      <div
+                        onClick={() => setRequirementStep(2)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: '#f0f9ff',
+                          border: '1px solid #bae6fd',
+                          padding: '3px 8px',
+                          borderRadius: '7px',
+                          color: '#075985',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                        title="Click to jump to Secondary Goal (Step 3.2)"
+                      >
+                        <span style={{
+                          background: '#0284c7',
+                          color: '#fff',
+                          fontSize: '10.5px',
+                          padding: '2px 5px',
+                          borderRadius: '4px',
+                          fontWeight: 700
+                        }}>2nd Secondary</span>
+                        <span>{goalLabels[secondaryGoal] || secondaryGoal}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSecondaryGoal('none');
+                            setIsAnalyzed(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#075985',
+                            cursor: 'pointer',
+                            padding: 0,
+                            fontSize: '12px',
+                            lineHeight: 1,
+                            fontWeight: 700
+                          }}
+                          title="Remove Secondary Goal"
+                        >✕</button>
+                      </div>
+                    ) : (
+                      <span
+                        onClick={() => setRequirementStep(2)}
+                        style={{ color: 'var(--muted)', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
+                        title="Click to configure Secondary Goal"
+                      >
+                        + Secondary
+                      </span>
+                    )}
+
+                    {/* Tertiary Slot */}
+                    {tertiaryGoal !== 'none' ? (
+                      <div
+                        onClick={() => setRequirementStep(3)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: '#faf5ff',
+                          border: '1px solid #e9d5ff',
+                          padding: '3px 8px',
+                          borderRadius: '7px',
+                          color: '#6b21a8',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                        title="Click to jump to Tertiary Goal (Step 3.3)"
+                      >
+                        <span style={{
+                          background: '#7c3aed',
+                          color: '#fff',
+                          fontSize: '10.5px',
+                          padding: '2px 5px',
+                          borderRadius: '4px',
+                          fontWeight: 700
+                        }}>3rd Tertiary</span>
+                        <span>{goalLabels[tertiaryGoal] || tertiaryGoal}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTertiaryGoal('none');
+                            setIsAnalyzed(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#6b21a8',
+                            cursor: 'pointer',
+                            padding: 0,
+                            fontSize: '12px',
+                            lineHeight: 1,
+                            fontWeight: 700
+                          }}
+                          title="Remove Tertiary Goal"
+                        >✕</button>
+                      </div>
+                    ) : (
+                      <span
+                        onClick={() => setRequirementStep(3)}
+                        style={{ color: 'var(--muted)', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
+                        title="Click to configure Tertiary Goal"
+                      >
+                        + Tertiary
+                      </span>
+                    )}
+
+                    {/* Budget summary */}
+                    {statedBudget > 0 && (
+                      <div
+                        onClick={() => setRequirementStep(4)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: '#fef3c7',
+                          border: '1px solid #fde68a',
+                          padding: '3px 8px',
+                          borderRadius: '7px',
+                          color: '#92400e',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                        title="Click to jump to Budget (Step 3.4)"
+                      >
+                        <span style={{
+                          background: '#d97706',
+                          color: '#fff',
+                          fontSize: '10.5px',
+                          padding: '2px 5px',
+                          borderRadius: '4px',
+                          fontWeight: 700
+                        }}>Budget</span>
+                        <span>{fmt(statedBudget)}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="presence-note">Select all that apply — leave blank if they're starting from zero.</p>
-              </div>
-              <div className="field">
-                <label>Client's stated monthly budget <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional — just for reference)</span></label>
-                <select 
-                  value={statedBudget}
-                  onChange={(e) => setStatedBudget(parseInt(e.target.value) || 0)}
-                >
-                  <option value="0">Not sure yet</option>
-                  <option value="15000">₹15,000 – 25,000</option>
-                  <option value="25000">₹25,000 – 50,000</option>
-                  <option value="50000">₹50,000 – 1,00,000</option>
-                  <option value="100000">₹1,00,000+</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="admin-toggle" onClick={() => setAdminOpen(!adminOpen)}>
-              <i className="ti ti-settings"></i> Admin: edit base pricing
-            </div>
-            <div className={`card admin-panel ${adminOpen ? 'open' : ''}`}>
-              <h2 style={{ marginBottom: '4px' }}><span className="num">⚙</span> Base pricing config</h2>
-              <p className="hint" style={{ marginBottom: 0 }}>Low/High plans scale off these base rates automatically.</p>
-
-              <div className="admin-section-label">Core services</div>
-              {[
-                { key: 'smm', label: 'Social Media Management (Instagram/FB)', type: '₹/mo base' },
-                { key: 'linkedin', label: 'LinkedIn / B2B Social Marketing', type: '₹/mo base' },
-                { key: 'ads', label: 'Google / Meta Ads Mgmt', type: '₹/mo base' },
-                { key: 'seo', label: 'SEO', type: '₹/mo base' },
-                { key: 'web', label: 'Business Website (5-page)', type: '₹ one-time' },
-                { key: 'ecomm', label: 'E-commerce Website / Store', type: '₹ one-time' },
-                { key: 'content', label: 'Content Creation', type: '₹/mo base' },
-                { key: 'wa', label: 'WhatsApp Mktg / Green Tick', type: '₹ one-time' },
-                { key: 'infl', label: 'Influencer Marketing', type: '₹/mo base' },
-                { key: 'gmb', label: 'GMB Optimization', type: '₹ one-time' },
-                { key: 'logo', label: 'Logo & Brand Identity', type: '₹ one-time' },
-                { key: 'pitch', label: 'Pitch Deck / Business PPT', type: '₹ one-time' },
-                { key: 'orm', label: 'Online Reputation Mgmt (ORM)', type: '₹/mo base' }
-              ].map((item) => (
-                <div key={item.key} className="admin-row">
-                  <span className="lbl">{item.label}</span>
-                  <input 
-                    type="number" 
-                    value={basePrices[item.key as keyof typeof basePrices]}
-                    onChange={(e) => setBasePrices({ ...basePrices, [item.key]: parseInt(e.target.value) || 0 })}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{item.type}</span>
-                </div>
-              ))}
-
-              <div className="admin-section-label">Companion fees</div>
-              {[
-                { key: 'adsSetupBasic', label: 'Paid Ads setup (Low/Medium)', type: '₹ one-time' },
-                { key: 'adsSetupPremium', label: 'Paid Ads setup (High)', type: '₹ one-time' },
-                { key: 'domainSecurity', label: 'Domain Security & SSL (High only)', type: '₹ one-time' }
-              ].map((item) => (
-                <div key={item.key} className="admin-row">
-                  <span className="lbl">{item.label}</span>
-                  <input 
-                    type="number" 
-                    value={basePrices[item.key as keyof typeof basePrices]}
-                    onChange={(e) => setBasePrices({ ...basePrices, [item.key]: parseInt(e.target.value) || 0 })}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{item.type}</span>
-                </div>
-              ))}
-
-              <div className="admin-section-label">High-plan add-ons</div>
-              {[
-                { key: 'dam', label: 'Dedicated Account Manager', type: '₹/mo' },
-                { key: 'analytics', label: 'Advanced Analytics & Reporting', type: '₹/mo' }
-              ].map((item) => (
-                <div key={item.key} className="admin-row">
-                  <span className="lbl">{item.label}</span>
-                  <input 
-                    type="number" 
-                    value={basePrices[item.key as keyof typeof basePrices]}
-                    onChange={(e) => setBasePrices({ ...basePrices, [item.key]: parseInt(e.target.value) || 0 })}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{item.type}</span>
-                </div>
-              ))}
-
-              <div className="admin-section-label">Tier scope multipliers</div>
-              {[
-                { key: 'low', label: 'Low plan', suffix: '× base price' },
-                { key: 'medium', label: 'Medium plan', suffix: '× base price' },
-                { key: 'high', label: 'High plan', suffix: '× base price' }
-              ].map((item) => (
-                <div key={item.key} className="admin-row">
-                  <span className="lbl">{item.label}</span>
-                  <input 
-                    type="number" 
-                    step="0.05"
-                    value={multipliers[item.key as keyof typeof multipliers]}
-                    onChange={(e) => setMultipliers({ ...multipliers, [item.key]: parseFloat(e.target.value) || 0 })}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{item.suffix}</span>
-                </div>
-              ))}
-
-              <div className="flex flex-col gap-2.5 mt-4">
-                <button
-                  type="button"
-                  onClick={handleSaveBasePrices}
-                  disabled={savingPrices}
-                  className="w-full bg-[#1a7a3e] hover:bg-[#124f28] disabled:bg-[#657a6c] text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors uppercase tracking-wider border-none cursor-pointer"
-                >
-                  {savingPrices ? 'Saving to Database...' : 'Save Base Prices to Database'}
-                </button>
-                <p className="save-note text-center" style={{ margin: 0 }}>
-                  Saves configured prices directly to active PostgreSQL database services.
-                </p>
-              </div>
-            </div>
+              );
+            })()}
           </div>
 
           {/* RIGHT: PLANS */}
           <div>
-            <div className="card" style={{ minHeight: '500px' }}>
+            <div className="card" style={{ minHeight: '520px' }}>
               {showEmpty ? (
-                <div className="plans-empty">
-                  <i className="ti ti-layout-grid"></i>
-                  <p>Fill in the client details on the left —<br />three plans will build themselves here.</p>
+                <div className="plans-empty" style={{ padding: '80px 24px', textAlign: 'center' }}>
+                  <div style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: 'var(--mint)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                    color: 'var(--green-dark)',
+                    fontSize: '28px'
+                  }}>
+                    <i className="ti ti-chart-arrows"></i>
+                  </div>
+                  <h3 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 10px', color: 'var(--ink)' }}>
+                    Ready to Generate Customized Quotation
+                  </h3>
+                  <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '440px', margin: '0 auto', lineHeight: 1.6 }}>
+                    Fill in the client details on the left and click <strong>"Analyze Now"</strong> to build 3 customized packages (Low, Medium, High).
+                  </p>
                 </div>
               ) : (
                 <div>
@@ -1600,13 +2898,13 @@ export default function Home() {
                       const p = item.planObj;
                       const isPopular = item.key === 'medium';
                       const isBudget = item.key === closestKey && item.key !== 'medium';
-                      const planReasonLine = plans.reasons[0] 
-                        ? plans.reasons[0].charAt(0).toUpperCase() + plans.reasons[0].slice(1) 
+                      const planReasonLine = plans.reasons[0]
+                        ? plans.reasons[0].charAt(0).toUpperCase() + plans.reasons[0].slice(1)
                         : `Matched to a ${stageLabels[stage].toLowerCase()} ${industryLabels[industry].toLowerCase()} business`;
 
                       return (
-                        <div 
-                          key={item.key} 
+                        <div
+                          key={item.key}
                           className={`plan-card ${isPopular ? 'popular' : ''} ${isBudget ? 'budget-match' : ''}`}
                         >
                           {isPopular && <div className="plan-badge popular-badge">Most Popular</div>}

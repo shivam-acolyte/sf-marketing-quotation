@@ -30,10 +30,15 @@ export interface Service {
 export interface Question {
   id: number;
   question: string;
-  questionType: string;
+  description?: string | null;
+  questionType: string; // text, single_choice, multi_choice, yes_no
   options: any; // Json
   required: boolean;
+  page?: number | null;
   displayOrder: number | null;
+  hasFollowUp?: boolean;
+  followUpText?: string | null;
+  followUpTrigger?: string | null;
   active: boolean;
   createdAt: Date | string;
 }

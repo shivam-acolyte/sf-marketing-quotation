@@ -1,6 +1,9 @@
+'use client';
+
 import { Outfit } from 'next/font/google';
 import '../globals.css';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -12,6 +15,19 @@ export default function PortalLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith('/admin');
+
+  // If in admin panel, render clean container matching exact warm neutral admin background
+  if (isAdmin) {
+    return (
+      <div className="font-sans antialiased min-h-screen w-full flex flex-col bg-[#f6f6f1] text-slate-900">
+        {children}
+      </div>
+    );
+  }
+
+  // Customer facing portal (e.g. /quotation/[id])
   return (
     <div className={`${outfit.className} dark-portal antialiased min-h-screen bg-slate-950 text-slate-100 bg-grid-pattern relative overflow-x-hidden flex flex-col`}>
       {/* Decorative background glows */}

@@ -2,6 +2,31 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db'; // JSON-backed database client (reads/writes data/services.json)
 
 /**
+ * GET /api/services/[id]
+ * Fetches an individual service record by ID from `data/services.json`.
+ */
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const serviceId = parseInt(id);
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId },
+      include: { serviceRules: true },
+    });
+    if (!service) {
+      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
+    }
+    return NextResponse.json(service);
+  } catch (error) {
+    console.error('Error fetching service in JSON store:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+/**
  * PUT /api/services/[id]
  * Updates an existing service record inside `data/services.json`.
  */

@@ -8,9 +8,9 @@
     "discount": 0,
     "tax": 15840,
     "total": 103840,
-    "status": "draft",
+    "status": "accepted",
     "validUntil": "2026-09-11T05:29:49.956Z",
     "createdAt": "2026-08-27T05:29:49.958Z",
-    "updatedAt": "2026-08-27T05:29:49.958Z"
+    "updatedAt": "2026-09-04T06:05:07.275Z"
   }
 ]
