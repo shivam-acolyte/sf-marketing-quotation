@@ -522,16 +522,14 @@ export default function Home() {
     if (q.id === 4) {
       const opts = Array.isArray(q.options) && q.options.length > 0 ? q.options : Object.values(industryLabels);
       return (
-        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end' }}>
-          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600, fontSize: '16px', margin: 0, lineHeight: 1.25 }}>
-              {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minWidth: 0 }}>
+          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', minWidth: 0 }}>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: '13.5px', margin: 0, lineHeight: 1.25, color: 'var(--ink)' }}>
+              Industry / Nature of business {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
             </label>
-            {q.description && (
-              <p style={{ fontSize: '13.5px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.description}>
-                {q.description}
-              </p>
-            )}
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.description || 'Select closest matching business domain'}>
+              {q.description || 'Select closest matching business domain'}
+            </p>
           </div>
           <select
             value={industry}
@@ -539,7 +537,7 @@ export default function Home() {
               setIndustry(e.target.value);
               setIsAnalyzed(false);
             }}
-            style={{ marginTop: '6px', fontSize: '12px', padding: '8px 16px 8px 6px', letterSpacing: '-0.01em' }}
+            style={{ marginTop: '8px', fontSize: '13px', padding: '8px 20px 8px 10px', height: '44px', width: '100%', boxSizing: 'border-box' }}
           >
             {opts.map((opt: string, idx: number) => {
               const key = Object.keys(industryLabels).find(k => industryLabels[k].toLowerCase() === opt.toLowerCase()) || opt.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -556,17 +554,17 @@ export default function Home() {
 
     if (q.id === 5) {
       const opts = Array.isArray(q.options) && q.options.length > 0 ? q.options : Object.values(stageLabels);
+      const title = q.question.includes('(') ? q.question.split('(')[0].trim() : q.question;
+      const desc = q.description || (q.question.includes('(') ? q.question.split('(')[1]?.replace(/\)/g, '').trim() : 'Apka business kitne saal purana hai?');
       return (
-        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end' }}>
-          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600, fontSize: '16px', margin: 0, lineHeight: 1.25 }}>
-              {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minWidth: 0 }}>
+          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', minWidth: 0 }}>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: '13.5px', margin: 0, lineHeight: 1.25, color: 'var(--ink)' }}>
+              {title} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
             </label>
-            {q.description && (
-              <p style={{ fontSize: '13.5px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.description}>
-                {q.description}
-              </p>
-            )}
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={desc}>
+              {desc}
+            </p>
           </div>
           <select
             value={stage}
@@ -574,7 +572,7 @@ export default function Home() {
               setStage(e.target.value);
               setIsAnalyzed(false);
             }}
-            style={{ marginTop: '6px', fontSize: '12px', padding: '8px 16px 8px 6px', letterSpacing: '-0.01em' }}
+            style={{ marginTop: '8px', fontSize: '13px', padding: '8px 20px 8px 10px', height: '44px', width: '100%', boxSizing: 'border-box' }}
           >
             {opts.map((opt: string, idx: number) => {
               const stageKeys = ['new', 'growing', 'established', 'established_5plus'];
@@ -582,7 +580,10 @@ export default function Home() {
               const labelText = opt
                 .replace(/< 1 year \(New \/ Startup\)/i, '< 1 yr (Startup)')
                 .replace(/< 1 year \(Startup\)/i, '< 1 yr (Startup)')
-                .replace(/< 1 year/i, '< 1 yr');
+                .replace(/< 1 year/i, '< 1 yr')
+                .replace(/1 – 3 years/i, '1 – 3 yrs')
+                .replace(/3 – 5 years/i, '3 – 5 yrs')
+                .replace(/5\+ years/i, '5+ yrs');
               return (
                 <option key={idx} value={key}>
                   {labelText}
@@ -1555,7 +1556,7 @@ export default function Home() {
         }
         .layout {
           display: grid;
-          grid-template-columns: 480px 1fr;
+          grid-template-columns: 500px 1fr;
           gap: 24px;
           margin-top: 18px;
           align-items: start;
@@ -1577,6 +1578,8 @@ export default function Home() {
           border-radius: 14px;
           padding: 22px 24px;
           box-shadow: 0 3px 12px rgba(26, 36, 51, 0.05);
+          box-sizing: border-box;
+          overflow: hidden;
         }
         .card h2 {
           font-family: 'Fraunces', serif;
@@ -1635,20 +1638,41 @@ export default function Home() {
         }
         .row2 {
           display: grid;
-          grid-template-columns: 1fr 1.65fr;
-          gap: 8px;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          gap: 12px;
           margin-bottom: 16px;
+          width: 100%;
+          box-sizing: border-box;
         }
         .row2:last-child {
           margin-bottom: 0;
         }
         .row2 .field {
           margin-bottom: 0;
+          min-width: 0;
+          width: 100%;
+          box-sizing: border-box;
         }
         .row2 select {
-          font-size: 12px !important;
-          padding: 8px 16px 8px 6px !important;
-          letter-spacing: -0.01em;
+          font-size: 13px !important;
+          padding: 8px 20px 8px 10px !important;
+          height: 44px;
+          border-radius: 9px;
+          border: 1.5px solid var(--line);
+          background: #fff;
+          color: var(--ink);
+          font-weight: 500;
+          width: 100% !important;
+          box-sizing: border-box !important;
+          transition: border-color .15s, box-shadow .15s;
+        }
+        .row2 select:hover {
+          border-color: #94a3b8;
+        }
+        .row2 select:focus {
+          outline: none;
+          border-color: var(--green);
+          box-shadow: 0 0 0 3px rgba(0, 196, 154, 0.15);
         }
         @media(max-width: 520px) {
           .row2 {
