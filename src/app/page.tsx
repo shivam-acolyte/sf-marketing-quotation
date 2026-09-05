@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { jsPDF } from 'jspdf';
 import type { Question } from '@/types/db';
 
@@ -538,7 +539,7 @@ export default function Home() {
               setIndustry(e.target.value);
               setIsAnalyzed(false);
             }}
-            style={{ marginTop: '6px' }}
+            style={{ marginTop: '6px', fontSize: '12px', padding: '8px 16px 8px 6px', letterSpacing: '-0.01em' }}
           >
             {opts.map((opt: string, idx: number) => {
               const key = Object.keys(industryLabels).find(k => industryLabels[k].toLowerCase() === opt.toLowerCase()) || opt.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -573,14 +574,18 @@ export default function Home() {
               setStage(e.target.value);
               setIsAnalyzed(false);
             }}
-            style={{ marginTop: '6px' }}
+            style={{ marginTop: '6px', fontSize: '12px', padding: '8px 16px 8px 6px', letterSpacing: '-0.01em' }}
           >
             {opts.map((opt: string, idx: number) => {
               const stageKeys = ['new', 'growing', 'established', 'established_5plus'];
               const key = Object.keys(stageLabels).find(k => stageLabels[k].toLowerCase() === opt.toLowerCase()) || stageKeys[idx] || opt.toLowerCase().replace(/[^a-z0-9]/g, '');
+              const labelText = opt
+                .replace(/< 1 year \(New \/ Startup\)/i, '< 1 yr (Startup)')
+                .replace(/< 1 year \(Startup\)/i, '< 1 yr (Startup)')
+                .replace(/< 1 year/i, '< 1 yr');
               return (
                 <option key={idx} value={key}>
-                  {opt}
+                  {labelText}
                 </option>
               );
             })}
@@ -1417,10 +1422,10 @@ export default function Home() {
           padding: 0 20px 60px;
         }
         header.top {
-          background: var(--green-dark);
-          color: #fff;
-          padding: 18px 0;
-          border-bottom: 3px solid var(--orange);
+          background: linear-gradient(180deg, #dcf4fb 0%, #bdeaf7 100%);
+          color: #0f172a;
+          padding: 14px 0;
+          border-bottom: 1px solid #bce4f5;
         }
         header.top .wrap {
           display: flex;
@@ -1431,44 +1436,122 @@ export default function Home() {
           padding-bottom: 0;
         }
         .brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          text-decoration: none;
+        }
+        .brand-logo {
+          height: 36px;
+          width: auto;
+          object-fit: contain;
+          display: block;
+        }
+        .brand-name {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-weight: 800;
+          font-size: 22px;
+          letter-spacing: -0.02em;
+          color: #000000;
+          line-height: 1;
+        }
+        .sales-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(16, 185, 129, 0.12);
+          border: 1px solid rgba(16, 185, 129, 0.32);
+          color: #047857;
+          padding: 4px 10px 4px 8px;
+          border-radius: 9999px;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          line-height: 1;
+          box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+          user-select: none;
+        }
+        .sales-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #10b981;
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+          display: inline-block;
+          animation: pulse-dot 2s infinite ease-in-out;
+        }
+        @keyframes pulse-dot {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.25); opacity: 0.65; }
+        }
+        .header-actions {
           display: flex;
           align-items: center;
           gap: 10px;
-        }
-        .brand-mark {
-          width: 38px;
-          height: 38px;
-          border-radius: 9px;
-          background: var(--orange);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Fraunces', serif;
-          font-weight: 700;
-          font-size: 19px;
-          color: #fff;
-        }
-        .brand-name {
-          font-family: 'Fraunces', serif;
-          font-weight: 700;
-          font-size: 19px;
-          letter-spacing: .2px;
-        }
-        .brand-sub {
-          font-size: 11.5px;
-          color: #bcd9c7;
-          font-family: 'IBM Plex Mono', monospace;
-          text-transform: uppercase;
-          letter-spacing: .08em;
+          flex-wrap: wrap;
         }
         .tool-tag {
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 11.5px;
-          color: var(--green-dark);
-          background: var(--mint);
-          padding: 6px 12px;
-          border-radius: 20px;
-          border: 1px dashed var(--green);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          color: #0369a1;
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          padding: 6px 14px;
+          border-radius: 9999px;
+          border: 1px solid rgba(14, 165, 233, 0.28);
+          box-shadow: 0 2px 6px -1px rgba(14, 165, 233, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          letter-spacing: -0.01em;
+          transition: all 0.2s ease;
+        }
+        .tool-tag:hover {
+          background: #ffffff;
+          border-color: rgba(14, 165, 233, 0.45);
+          box-shadow: 0 4px 12px -2px rgba(14, 165, 233, 0.2);
+        }
+        .tool-tag i {
+          color: #0284c7;
+          font-size: 14px;
+        }
+        .admin-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          color: #0f172a;
+          background: rgba(255, 255, 255, 0.92);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          padding: 6px 14px;
+          border-radius: 9999px;
+          border: 1px solid rgba(15, 23, 42, 0.14);
+          text-decoration: none;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+        }
+        .admin-btn:hover {
+          background: #0f172a;
+          color: #ffffff;
+          border-color: #0f172a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+        }
+        .admin-btn i {
+          font-size: 13.5px;
+          color: #64748b;
+          transition: color 0.2s ease;
+        }
+        .admin-btn:hover i {
+          color: #38bdf8;
         }
         .layout {
           display: grid;
@@ -1552,8 +1635,8 @@ export default function Home() {
         }
         .row2 {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
+          grid-template-columns: 1fr 1.65fr;
+          gap: 8px;
           margin-bottom: 16px;
         }
         .row2:last-child {
@@ -1561,6 +1644,11 @@ export default function Home() {
         }
         .row2 .field {
           margin-bottom: 0;
+        }
+        .row2 select {
+          font-size: 12px !important;
+          padding: 8px 16px 8px 6px !important;
+          letter-spacing: -0.01em;
         }
         @media(max-width: 520px) {
           .row2 {
@@ -1949,22 +2037,167 @@ export default function Home() {
           }
         }
         .plan-card {
-          border: 1.5px solid var(--line);
           border-radius: 14px;
           padding: 24px;
-          background: #fff;
           display: flex;
           flex-direction: column;
           position: relative;
-          transition: border-color .15s, transform .15s;
+          transition: all .2s ease;
+        }
+
+        /* 1. Low Plan - "Look OK OK" (Entry-level, modest, clean) */
+        .plan-card.plan-low {
+          background: #ffffff;
+          border: 1.5px solid #e2e8f0;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+          color: #334155;
+        }
+        .plan-card.plan-low .plan-tier {
+          color: #64748b;
+        }
+        .plan-card.plan-low .plan-name {
+          color: #334155;
+        }
+        .plan-card.plan-low .plan-tagline {
+          color: #64748b;
+        }
+        .plan-card.plan-low .plan-price .amt {
+          color: #475569;
+        }
+        .plan-card.plan-low .plan-price .per {
+          color: #94a3b8;
+        }
+        .plan-card.plan-low .plan-setup {
+          color: #94a3b8;
+        }
+        .plan-card.plan-low .plan-services {
+          border-top: 1px dashed #cbd5e1;
+        }
+        .plan-card.plan-low .plan-services li {
+          border-bottom: 1px solid #f1f5f9;
+        }
+        .plan-card.plan-low .plan-services .sv-name {
+          color: #334155;
+          font-weight: 600;
+        }
+        .plan-card.plan-low .plan-services .sv-scope {
+          color: #94a3b8;
+        }
+        .plan-card.plan-low .plan-services .sv-price {
+          color: #475569;
+        }
+        .plan-card.plan-low .plan-why {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #64748b;
+        }
+
+        /* 2. Medium Plan - "Standard Look" (Highlighted, Brand Emerald, Most Popular) */
+        .plan-card.plan-medium {
+          background: #ffffff;
+          border: 2px solid #0BBF6A;
+          box-shadow: 0 6px 20px -3px rgba(11, 191, 106, 0.15), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
           color: var(--ink);
         }
-        .plan-card.popular {
-          border-color: var(--green);
-          box-shadow: 0 4px 18px rgba(26,122,62,.08);
+        .plan-card.plan-medium .plan-tier {
+          color: #059669;
+          font-weight: 700;
+        }
+        .plan-card.plan-medium .plan-name {
+          color: #0f172a;
+        }
+        .plan-card.plan-medium .plan-tagline {
+          color: #475569;
+        }
+        .plan-card.plan-medium .plan-price .amt {
+          color: #047857;
+        }
+        .plan-card.plan-medium .plan-price .per {
+          color: #64748b;
+        }
+        .plan-card.plan-medium .plan-setup {
+          color: #64748b;
+        }
+        .plan-card.plan-medium .plan-services {
+          border-top: 1px dashed rgba(11, 191, 106, 0.4);
+        }
+        .plan-card.plan-medium .plan-services li {
+          border-bottom: 1px solid #f1f5f0;
+        }
+        .plan-card.plan-medium .plan-services .sv-name {
+          color: #0f172a;
+          font-weight: 600;
+        }
+        .plan-card.plan-medium .plan-services .sv-scope {
+          color: #64748b;
+        }
+        .plan-card.plan-medium .plan-services .sv-price {
+          color: #047857;
+          font-weight: 600;
+        }
+        .plan-card.plan-medium .plan-why {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          color: #166534;
+        }
+
+        /* 3. High Plan - "Make it look Premium" (Executive Dark Midnight Navy, Electric Glow, Crown Badge) */
+        .plan-card.plan-high {
+          background: linear-gradient(160deg, #0b1329 0%, #111d38 55%, #0d1527 100%);
+          border: 2px solid #38bdf8;
+          box-shadow: 0 12px 36px -4px rgba(11, 19, 41, 0.42), 0 0 24px rgba(56, 189, 248, 0.22);
+          color: #f8fafc;
+        }
+        .plan-card.plan-high .plan-tier {
+          color: #38bdf8;
+          font-weight: 700;
+          letter-spacing: .1em;
+        }
+        .plan-card.plan-high .plan-name {
+          color: #ffffff;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        .plan-card.plan-high .plan-tagline {
+          color: #94a3b8;
+        }
+        .plan-card.plan-high .plan-price .amt {
+          color: #38bdf8;
+          text-shadow: 0 2px 10px rgba(56, 189, 248, 0.25);
+        }
+        .plan-card.plan-high .plan-price .per {
+          color: #94a3b8;
+        }
+        .plan-card.plan-high .plan-setup {
+          color: #cbd5e1;
+        }
+        .plan-card.plan-high .plan-services {
+          border-top: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+        .plan-card.plan-high .plan-services li {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .plan-card.plan-high .plan-services .sv-name {
+          color: #ffffff;
+          font-weight: 600;
+        }
+        .plan-card.plan-high .plan-services .sv-scope {
+          color: #94a3b8;
+        }
+        .plan-card.plan-high .plan-services .sv-price {
+          color: #38bdf8;
+          font-weight: 600;
+        }
+        .plan-card.plan-high .plan-why {
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: #cbd5e1;
+        }
+        .plan-card.plan-high:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 16px 44px -4px rgba(11, 19, 41, 0.5), 0 0 30px rgba(56, 189, 248, 0.3);
         }
         .plan-card.budget-match {
-          border-color: var(--orange);
+          border-color: var(--orange) !important;
         }
         .plan-badge {
           position: absolute;
@@ -1979,12 +2212,21 @@ export default function Home() {
           font-weight: 600;
         }
         .plan-badge.popular-badge {
-          background: var(--green);
+          background: #0BBF6A;
           color: #fff;
+          box-shadow: 0 2px 8px rgba(11, 191, 106, 0.3);
         }
         .plan-badge.budget-badge {
           background: var(--orange);
           color: #fff;
+        }
+        .plan-badge.premium-badge {
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          color: #ffffff;
+          box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
         .plan-tier {
           font-family: 'IBM Plex Mono', monospace;
@@ -2149,13 +2391,23 @@ export default function Home() {
       <header className="top">
         <div className="wrap">
           <div className="brand">
-            <div className="brand-mark">SF</div>
-            <div>
-              <div className="brand-name">StartupFlora</div>
-              <div className="brand-sub">Sales Desk</div>
-            </div>
+            <img src="/logo.png" alt="StartupFlora" className="brand-logo" />
+            <span className="brand-name">StartupFlora</span>
+            <span className="sales-pill">
+              <span className="sales-dot" />
+              Sales
+            </span>
           </div>
-          <div className="tool-tag">Digital Marketing Quotation Tool</div>
+          <div className="header-actions">
+            <div className="tool-tag">
+              <i className="ti ti-sparkles" />
+              <span>Digital Marketing Quotation Tool</span>
+            </div>
+            <Link href="/admin" className="admin-btn">
+              <i className="ti ti-shield-lock" />
+              <span>Admin</span>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -2905,10 +3157,15 @@ export default function Home() {
                       return (
                         <div
                           key={item.key}
-                          className={`plan-card ${isPopular ? 'popular' : ''} ${isBudget ? 'budget-match' : ''}`}
+                          className={`plan-card plan-${item.key} ${isPopular ? 'popular' : ''} ${isBudget ? 'budget-match' : ''}`}
                         >
                           {isPopular && <div className="plan-badge popular-badge">Most Popular</div>}
                           {isBudget && <div className="plan-badge budget-badge">Matches Budget</div>}
+                          {!isPopular && !isBudget && item.key === 'high' && (
+                            <div className="plan-badge premium-badge">
+                              <i className="ti ti-crown" style={{ fontSize: '13px' }}></i> Premium
+                            </div>
+                          )}
 
                           <div className="plan-tier">{item.label} Plan</div>
                           <div className="plan-name">{item.name}</div>

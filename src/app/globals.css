@@ -191,12 +191,10 @@
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0) 100%);
   transform: skewX(-25deg);
   transition: all 0.6s ease;
   pointer-events: none;
@@ -243,12 +241,17 @@ input[type="range"].interactive-range::-webkit-slider-thumb:active {
 
 /* Subtle Shimmer Animation */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(99,102,241,0.08) 50%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(255, 255, 255, 0) 100%);
   background-size: 200% 100%;
   animation: shimmer 3s infinite linear;
 }
@@ -262,7 +265,10 @@ input[type="range"].interactive-range::-webkit-slider-thumb:active {
 .gradient-border-indigo::after {
   content: '';
   position: absolute;
-  top: -1px; right: -1px; bottom: -1px; left: -1px;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
   background: linear-gradient(135deg, #6366f1, #a855f7, #06b6d4);
   z-index: -1;
   border-radius: inherit;
