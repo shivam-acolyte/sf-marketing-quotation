@@ -27,10 +27,10 @@ const goalLabels: Record<string, string> = {
 };
 
 const stageLabels: Record<string, string> = {
-  new: "< 1 year (Startup)",
-  growing: "1–3 years (Growing)",
-  established: "3–5 years (Established)",
-  established_5plus: "5+ years (Well-established)"
+  new: "0-1 yrs (New Business)",
+  growing: "1-3 yrs (Growing)",
+  established: "3-5 yrs (Established)",
+  established_5plus: "5+ yrs (Well Established)"
 };
 
 
@@ -72,6 +72,72 @@ const resolveWebsiteConflict = (list: string[], scores: Record<string, number>):
   }
   return list;
 };
+
+// Step 3 "What do you want?" — service interest categories, priced live from data/services.json
+// `serviceName` must match a `name` in data/services.json exactly, so its real min/max price can be looked up.
+interface WantSubOption {
+  key: string;
+  label: string;
+  serviceName: string;
+}
+interface WantCategory {
+  key: string;
+  label: string;
+  icon: string;
+  description: string;
+  options: WantSubOption[];
+}
+
+const WANT_CATEGORIES: WantCategory[] = [
+  {
+    key: 'website',
+    label: 'Website',
+    icon: 'ti-world',
+    description: 'A digital storefront or online presence',
+    options: [
+      { key: 'onepager', label: '1-Page Website', serviceName: '1 Pager Website' },
+      { key: 'business', label: '5-Page Business Website', serviceName: 'BASIC WEBSITE' },
+      { key: 'ecommerce', label: 'E-commerce / Online Store', serviceName: 'E-COMMERCE WEBSITE' },
+      { key: 'custom', label: 'Custom / Advanced Website', serviceName: 'CUSTOM / ADVANCED E-COMMERCE WEBSITE' },
+    ],
+  },
+  {
+    key: 'social',
+    label: 'Social Media',
+    icon: 'ti-share',
+    description: 'Content, paid ads & influencer marketing',
+    options: [
+      { key: 'content', label: 'Content & Posting', serviceName: '1 Month (Basic) - Social Media Plan' },
+      { key: 'ads', label: 'Paid Ads (Meta / Google)', serviceName: 'Paid Ads (Silver) - Basic Package' },
+      { key: 'influencer', label: 'Influencer Marketing', serviceName: 'Influencer Marketing' },
+      { key: 'whatsapp', label: 'WhatsApp Marketing', serviceName: 'WhatsApp Marketing & Green Tick' },
+    ],
+  },
+  {
+    key: 'seo',
+    label: 'SEO + Marketing',
+    icon: 'ti-search',
+    description: 'Search visibility & content strategy',
+    options: [
+      { key: 'seo', label: 'SEO (Search Ranking)', serviceName: 'SEO 2-Months' },
+      { key: 'gmb', label: 'Google Business Profile', serviceName: 'Google Business Profile Optimization' },
+      { key: 'content_mkt', label: 'Content Marketing', serviceName: 'Content Creation & Marketing' },
+      { key: 'linkedin', label: 'LinkedIn / B2B Marketing', serviceName: 'LinkedIn / B2B Social Marketing' },
+    ],
+  },
+  {
+    key: 'analytics',
+    label: 'Business Analytics',
+    icon: 'ti-chart-bar',
+    description: 'Reporting, branding & reputation',
+    options: [
+      { key: 'reporting', label: 'Advanced Analytics & Reporting', serviceName: 'Advanced Analytics & Reporting' },
+      { key: 'branding', label: 'Logo & Brand Identity', serviceName: 'Standard Logo Desing' },
+      { key: 'orm', label: 'Online Reputation Management', serviceName: 'Online Reputation Management (ORM)' },
+      { key: 'pitch', label: 'Pitch Deck / Business PPT', serviceName: 'Pitch Deck / Business PPT Preparation' },
+    ],
+  },
+];
 
 const relevanceTag = (score: number): string => {
   if (score >= 7) return "High relevance";
@@ -235,6 +301,12 @@ export default function Home() {
   const [dynamicAnswers, setDynamicAnswers] = useState<Record<number, any>>({});
   const [dynamicFollowUps, setDynamicFollowUps] = useState<Record<number, boolean>>({});
 
+  // Step 3 "What do you want?" service-interest selections
+  const [wantCategories, setWantCategories] = useState<string[]>([]);
+  const [wantSubOptions, setWantSubOptions] = useState<Record<string, string[]>>({});
+  // Live price lookup (by service name) sourced from data/services.json, used to show real prices in Step 3
+  const [servicePriceByName, setServicePriceByName] = useState<Record<string, { min: number; max: number }>>({});
+
   const loadQuestions = async () => {
     try {
       const res = await fetch('/api/questions', { cache: 'no-store' });
@@ -330,6 +402,26 @@ export default function Home() {
     fetchDatabasePrices();
   }, []);
 
+  // Fetch the full services catalog (for real Step 3 "What do you want?" pricing)
+  useEffect(() => {
+    async function fetchServicesCatalog() {
+      try {
+        const res = await fetch('/api/services', { cache: 'no-store' });
+        if (res.ok) {
+          const data: { name: string; minPrice: any; maximumPrice: any }[] = await res.json();
+          const lookup: Record<string, { min: number; max: number }> = {};
+          data.forEach((s) => {
+            lookup[s.name] = { min: Number(s.minPrice) || 0, max: Number(s.maximumPrice) || 0 };
+          });
+          setServicePriceByName(lookup);
+        }
+      } catch (error) {
+        console.error('Error fetching services catalog:', error);
+      }
+    }
+    fetchServicesCatalog();
+  }, []);
+
   // AI Category Auto-detection
   const handleAutoDetectCategory = async () => {
     if (!businessDescription.trim()) return;
@@ -393,6 +485,35 @@ export default function Home() {
     setIsAnalyzed(false);
   };
 
+  // Step 3 "What do you want?" toggle handlers
+  const handleWantCategoryToggle = (categoryKey: string) => {
+    setWantCategories((prev) => {
+      const isOn = prev.includes(categoryKey);
+      if (isOn) {
+        // Unchecking a category clears its selected sub-options too
+        setWantSubOptions((prevOpts) => {
+          const next = { ...prevOpts };
+          delete next[categoryKey];
+          return next;
+        });
+        return prev.filter((k) => k !== categoryKey);
+      }
+      return [...prev, categoryKey];
+    });
+    setIsAnalyzed(false);
+  };
+
+  const handleWantSubOptionToggle = (categoryKey: string, optionKey: string) => {
+    setWantSubOptions((prev) => {
+      const current = prev[categoryKey] || [];
+      const next = current.includes(optionKey)
+        ? current.filter((k) => k !== optionKey)
+        : [...current, optionKey];
+      return { ...prev, [categoryKey]: next };
+    });
+    setIsAnalyzed(false);
+  };
+
   // Multi-checkbox toggling (backwards compatibility)
   const handlePresenceChange = (val: string) => {
     if (val === 'none') {
@@ -414,12 +535,12 @@ export default function Home() {
     // 1. Core question mapping
     if (q.id === 1) {
       return (
-        <div key={q.id} className="field">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
-            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+        <div key={q.id} className="mb-4 last:mb-0">
+          <label className="flex items-center gap-1 font-semibold text-[16px] text-[#1A2433] mb-1.5">
+            {q.question} {q.required && <span className="text-[#8B1E1E]">*</span>}
           </label>
           {q.description && (
-            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
+            <p className="text-sm text-[#6C757D] mt-0.5 mb-1.5 leading-snug">
               {q.description}
             </p>
           )}
@@ -431,6 +552,7 @@ export default function Home() {
               setIsAnalyzed(false);
             }}
             placeholder="e.g. Meera Handicrafts"
+            className="w-full box-border h-[46px] px-3.5 border-[1.5px] border-[#A0AAB2] rounded-[9px] text-[16px] bg-white text-[#1A2433] transition-colors focus:outline-none focus:border-[#00C49A] focus:ring-[3px] focus:ring-[#00C49A]/15"
           />
         </div>
       );
@@ -438,12 +560,12 @@ export default function Home() {
 
     if (q.id === 2) {
       return (
-        <div key={q.id} className="field">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
-            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+        <div key={q.id} className="mb-4 last:mb-0">
+          <label className="flex items-center gap-1 font-semibold text-[16px] text-[#1A2433] mb-1.5">
+            {q.question} {q.required && <span className="text-[#8B1E1E]">*</span>}
           </label>
           {q.description && (
-            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
+            <p className="text-sm text-[#6C757D] mt-0.5 mb-1.5 leading-snug">
               {q.description}
             </p>
           )}
@@ -455,6 +577,7 @@ export default function Home() {
               setIsAnalyzed(false);
             }}
             placeholder="e.g. Jaipur"
+            className="w-full box-border h-[46px] px-3.5 border-[1.5px] border-[#A0AAB2] rounded-[9px] text-[16px] bg-white text-[#1A2433] transition-colors focus:outline-none focus:border-[#00C49A] focus:ring-[3px] focus:ring-[#00C49A]/15"
           />
         </div>
       );
@@ -462,43 +585,40 @@ export default function Home() {
 
     if (q.id === 3) {
       return (
-        <div key={q.id} className="field auto-detect-card">
-          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
-            <span>{q.question}</span>
+        <div key={q.id} className="mb-4 last:mb-0 bg-[#f8faf9] border border-[#e1e7e4] rounded-[10px] px-3.5 py-3">
+          <label className="flex items-center gap-1 font-semibold text-[16px] text-[#1A2433] mb-1.5">
+            <span>Business Description (Business kya karta hai)</span>
           </label>
-          {q.description && (
-            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
-              {q.description}
-            </p>
-          )}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <p className="text-sm text-[#6C757D] mt-0.5 mb-1.5 leading-snug">
+            In a few words, what does this business sell or do? We&apos;ll use it to suggest the industry.
+          </p>
+          <div className="flex gap-2">
             <input
               type="text"
               value={businessDescription}
               onChange={(e) => setBusinessDescription(e.target.value)}
-              placeholder="e.g. Apne business ka naam likhe"
-              style={{ flex: 1, height: '46px' }}
+              placeholder="e.g. Local bakery"
+              className="flex-1 min-w-0 box-border h-[46px] px-3.5 border-[1.5px] border-[#A0AAB2] rounded-[9px] text-[13px] bg-white text-[#1A2433] transition-colors focus:outline-none focus:border-[#00C49A] focus:ring-[3px] focus:ring-[#00C49A]/15"
             />
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary whitespace-nowrap shrink-0"
               onClick={handleAutoDetectCategory}
               disabled={isDetecting || !businessDescription.trim()}
               style={{
                 padding: '0 16px',
                 height: '46px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                whiteSpace: 'nowrap',
                 minWidth: '120px',
+                fontSize: '15px',
+                display: 'inline-flex',
+                alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '15px'
+                gap: '6px'
               }}
             >
               {isDetecting ? (
                 <>
-                  <span className="spinner-mini"></span>
+                  <span className="spinner-mini" style={{ borderTopColor: 'var(--green-dark)', borderColor: 'rgba(44,151,183,0.25)' }}></span>
                   Detecting...
                 </>
               ) : (
@@ -510,8 +630,8 @@ export default function Home() {
             </button>
           </div>
           {detectionResult && (
-            <div style={{ fontSize: '14px', marginTop: '6px', color: 'var(--green-dark)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <i className="ti ti-circle-check" style={{ color: 'var(--green)', fontSize: '16px' }}></i>
+            <div className="text-sm mt-1.5 text-[#2C97B7] flex items-center gap-1.5">
+              <i className="ti ti-circle-check text-[#00C49A] text-base"></i>
               <span>Category selected: <strong>{industryLabels[detectionResult] || detectionResult}</strong></span>
             </div>
           )}
@@ -522,13 +642,13 @@ export default function Home() {
     if (q.id === 4) {
       const opts = Array.isArray(q.options) && q.options.length > 0 ? q.options : Object.values(industryLabels);
       return (
-        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minWidth: 0 }}>
-          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', minWidth: 0 }}>
-            <label style={{ display: 'block', fontWeight: 600, fontSize: '13.5px', margin: 0, lineHeight: 1.25, color: 'var(--ink)' }}>
-              Industry / Nature of business {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+        <div key={q.id} className="flex flex-col h-full justify-end min-w-0">
+          <div className="min-h-[44px] flex flex-col justify-start min-w-0">
+            <label className="block font-semibold text-[13.5px] leading-tight text-[#1A2433]">
+              Industry {q.required && <span className="text-[#8B1E1E]">*</span>}
             </label>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.description || 'Select closest matching business domain'}>
-              {q.description || 'Select closest matching business domain'}
+            <p className="text-xs text-[#6C757D] mt-1 leading-tight truncate" title={q.description || 'Choose the option that best fits your business'}>
+              {q.description || 'Choose the option that best fits your business'}
             </p>
           </div>
           <select
@@ -537,7 +657,7 @@ export default function Home() {
               setIndustry(e.target.value);
               setIsAnalyzed(false);
             }}
-            style={{ marginTop: '8px', fontSize: '13px', padding: '8px 20px 8px 10px', height: '44px', width: '100%', boxSizing: 'border-box' }}
+            className="mt-2 w-full box-border"
           >
             {opts.map((opt: string, idx: number) => {
               const key = Object.keys(industryLabels).find(k => industryLabels[k].toLowerCase() === opt.toLowerCase()) || opt.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -554,15 +674,14 @@ export default function Home() {
 
     if (q.id === 5) {
       const opts = Array.isArray(q.options) && q.options.length > 0 ? q.options : Object.values(stageLabels);
-      const title = q.question.includes('(') ? q.question.split('(')[0].trim() : q.question;
-      const desc = q.description || (q.question.includes('(') ? q.question.split('(')[1]?.replace(/\)/g, '').trim() : 'Apka business kitne saal purana hai?');
+      const desc = q.description || 'How long has the business been running?';
       return (
-        <div key={q.id} className="field" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minWidth: 0 }}>
-          <div style={{ minHeight: '44px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', minWidth: 0 }}>
-            <label style={{ display: 'block', fontWeight: 600, fontSize: '13.5px', margin: 0, lineHeight: 1.25, color: 'var(--ink)' }}>
-              {title} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+        <div key={q.id} className="flex flex-col h-full justify-end min-w-0">
+          <div className="min-h-[44px] flex flex-col justify-start min-w-0">
+            <label className="block font-semibold text-[13.5px] leading-tight text-[#1A2433]">
+              Business Age {q.required && <span className="text-[#8B1E1E]">*</span>}
             </label>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '3px 0 0 0', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={desc}>
+            <p className="text-xs text-[#6C757D] mt-1 leading-tight truncate" title={desc}>
               {desc}
             </p>
           </div>
@@ -572,21 +691,14 @@ export default function Home() {
               setStage(e.target.value);
               setIsAnalyzed(false);
             }}
-            style={{ marginTop: '8px', fontSize: '13px', padding: '8px 20px 8px 10px', height: '44px', width: '100%', boxSizing: 'border-box' }}
+            className="mt-2 w-full box-border"
           >
             {opts.map((opt: string, idx: number) => {
               const stageKeys = ['new', 'growing', 'established', 'established_5plus'];
               const key = Object.keys(stageLabels).find(k => stageLabels[k].toLowerCase() === opt.toLowerCase()) || stageKeys[idx] || opt.toLowerCase().replace(/[^a-z0-9]/g, '');
-              const labelText = opt
-                .replace(/< 1 year \(New \/ Startup\)/i, '< 1 yr (Startup)')
-                .replace(/< 1 year \(Startup\)/i, '< 1 yr (Startup)')
-                .replace(/< 1 year/i, '< 1 yr')
-                .replace(/1 – 3 years/i, '1 – 3 yrs')
-                .replace(/3 – 5 years/i, '3 – 5 yrs')
-                .replace(/5\+ years/i, '5+ yrs');
               return (
                 <option key={idx} value={key}>
-                  {labelText}
+                  {opt}
                 </option>
               );
             })}
@@ -597,12 +709,12 @@ export default function Home() {
 
     if (q.id === 6) {
       return (
-        <div key={q.id} className="field">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>
-            {q.question} {q.required && <span style={{ color: 'var(--red)' }}>*</span>}
+        <div key={q.id} className="mb-4 last:mb-0">
+          <label className="flex items-center gap-1 font-semibold text-[16px] text-[#1A2433] mb-1.5">
+            {q.question} {q.required && <span className="text-[#8B1E1E]">*</span>}
           </label>
           {q.description && (
-            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '2px 0 6px 0', lineHeight: 1.35 }}>
+            <p className="text-sm text-[#6C757D] mt-0.5 mb-1.5 leading-snug">
               {q.description}
             </p>
           )}
@@ -614,6 +726,7 @@ export default function Home() {
               setIsAnalyzed(false);
             }}
             placeholder="Your name"
+            className="w-full box-border h-[46px] px-3.5 border-[1.5px] border-[#A0AAB2] rounded-[9px] text-[16px] bg-white text-[#1A2433] transition-colors focus:outline-none focus:border-[#00C49A] focus:ring-[3px] focus:ring-[#00C49A]/15"
           />
         </div>
       );
@@ -621,16 +734,16 @@ export default function Home() {
 
     if (q.id === 7) {
       return (
-        <div key={q.id} className="presence-item">
-          <div className="presence-item-header">
-            <div className="presence-info">
-              <div className="presence-title">
-                <i className="ti ti-world" style={{ color: 'var(--green-dark)', marginRight: '8px', fontSize: '18px' }}></i>
+        <div key={q.id} className="bg-[#f8fafc] border-[1.5px] border-[#e2e8f0] rounded-[10px] px-4 py-3 transition-colors hover:border-[#cbd5e1]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center font-bold text-[16.5px] text-[#1A2433]">
+                <i className="ti ti-world text-[#2C97B7] mr-2 text-lg"></i>
                 <strong>{q.question}</strong>
               </div>
-              <div className="presence-sub">{q.description || 'Do they have an active website?'}</div>
+              <div className="text-[14.5px] text-[#6C757D] mt-0.5">{q.description || 'Does the business already have a live website?'}</div>
             </div>
-            <div className="yes-no-group">
+            <div className="inline-flex gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => handleWebsiteToggle(true)}
@@ -648,8 +761,8 @@ export default function Home() {
             </div>
           </div>
           {hasWebsite === true && q.hasFollowUp && (
-            <div className="improvement-reveal">
-              <label className="checkbox-label">
+            <div className="mt-2.5 px-3.5 py-2 bg-[#ecfdf5] border border-[#a7f3d0] rounded-lg">
+              <label className="text-[15.5px] font-semibold text-[#065f46] cursor-pointer select-none" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="checkbox"
                   checked={websiteImprovement}
@@ -657,8 +770,9 @@ export default function Home() {
                     setWebsiteImprovement(e.target.checked);
                     setIsAnalyzed(false);
                   }}
+                  className="w-[19px] h-[19px] accent-[#00C49A] cursor-pointer"
                 />
-                <span>{q.followUpText || 'Want improvement / Redesign'}</span>
+                <span>{q.followUpText || 'Wants a redesign / improvement'}</span>
               </label>
             </div>
           )}
@@ -668,16 +782,16 @@ export default function Home() {
 
     if (q.id === 8) {
       return (
-        <div key={q.id} className="presence-item">
-          <div className="presence-item-header">
-            <div className="presence-info">
-              <div className="presence-title">
-                <i className="ti ti-brand-instagram" style={{ color: '#e1306c', marginRight: '8px', fontSize: '18px' }}></i>
+        <div key={q.id} className="bg-[#f8fafc] border-[1.5px] border-[#e2e8f0] rounded-[10px] px-4 py-3 transition-colors hover:border-[#cbd5e1]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center font-bold text-[16.5px] text-[#1A2433]">
+                <i className="ti ti-share text-[#e1306c] mr-2 text-lg"></i>
                 <strong>{q.question}</strong>
               </div>
-              <div className="presence-sub">{q.description || 'Active profiles on Instagram / Facebook / LinkedIn?'}</div>
+              <div className="text-[14.5px] text-[#6C757D] mt-0.5">{q.description || 'Active on platforms like Instagram, Facebook, or LinkedIn?'}</div>
             </div>
-            <div className="yes-no-group">
+            <div className="inline-flex gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => handleSocialToggle(true)}
@@ -695,8 +809,8 @@ export default function Home() {
             </div>
           </div>
           {hasSocial === true && q.hasFollowUp && (
-            <div className="improvement-reveal">
-              <label className="checkbox-label">
+            <div className="mt-2.5 px-3.5 py-2 bg-[#ecfdf5] border border-[#a7f3d0] rounded-lg">
+              <label className="text-[15.5px] font-semibold text-[#065f46] cursor-pointer select-none" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="checkbox"
                   checked={socialImprovement}
@@ -704,8 +818,9 @@ export default function Home() {
                     setSocialImprovement(e.target.checked);
                     setIsAnalyzed(false);
                   }}
+                  className="w-[19px] h-[19px] accent-[#00C49A] cursor-pointer"
                 />
-                <span>{q.followUpText || 'Want improvement / Growth & Management'}</span>
+                <span>{q.followUpText || 'Wants growth & management help'}</span>
               </label>
             </div>
           )}
@@ -715,16 +830,16 @@ export default function Home() {
 
     if (q.id === 9) {
       return (
-        <div key={q.id} className="presence-item">
-          <div className="presence-item-header">
-            <div className="presence-info">
-              <div className="presence-title">
-                <i className="ti ti-map-pin" style={{ color: '#ea4335', marginRight: '8px', fontSize: '18px' }}></i>
+        <div key={q.id} className="bg-[#f8fafc] border-[1.5px] border-[#e2e8f0] rounded-[10px] px-4 py-3 transition-colors hover:border-[#cbd5e1]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center font-bold text-[16.5px] text-[#1A2433]">
+                <i className="ti ti-map-pin text-[#ea4335] mr-2 text-lg"></i>
                 <strong>{q.question}</strong>
               </div>
-              <div className="presence-sub">{q.description || 'Google Maps listing verified & active?'}</div>
+              <div className="text-[14.5px] text-[#6C757D] mt-0.5">{q.description || 'Is the business listed and verified on Google Maps?'}</div>
             </div>
-            <div className="yes-no-group">
+            <div className="inline-flex gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => handleGmbToggle(true)}
@@ -742,8 +857,8 @@ export default function Home() {
             </div>
           </div>
           {hasGmb === true && q.hasFollowUp && (
-            <div className="improvement-reveal">
-              <label className="checkbox-label">
+            <div className="mt-2.5 px-3.5 py-2 bg-[#ecfdf5] border border-[#a7f3d0] rounded-lg">
+              <label className="text-[15.5px] font-semibold text-[#065f46] cursor-pointer select-none" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="checkbox"
                   checked={gmbImprovement}
@@ -751,8 +866,9 @@ export default function Home() {
                     setGmbImprovement(e.target.checked);
                     setIsAnalyzed(false);
                   }}
+                  className="w-[19px] h-[19px] accent-[#00C49A] cursor-pointer"
                 />
-                <span>{q.followUpText || 'Want improvement / Ranking & Reviews'}</span>
+                <span>{q.followUpText || 'Wants better ranking & reviews'}</span>
               </label>
             </div>
           )}
@@ -762,17 +878,19 @@ export default function Home() {
 
     if (q.id === 10) {
       return (
-        <div key={q.id} className="none-of-these-wrapper">
-          <label className="checkbox-label none-label">
+        <div key={q.id} className="px-4 py-3 bg-[#f8fafc] border-[1.5px] border-dashed border-[#cbd5e1] rounded-[10px] mt-1.5 transition-colors hover:border-[#00C49A]">
+          <label className="flex items-center text-[16px] text-[#1A2433] cursor-pointer select-none" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <input
               type="checkbox"
               checked={noneOfThese}
               onChange={(e) => handleNoneOfTheseToggle(e.target.checked)}
+              className="w-[19px] h-[19px] accent-[#00C49A] cursor-pointer shrink-0"
+              style={{ marginRight: '2px' }}
             />
             <span><strong>{q.question}</strong></span>
           </label>
           {q.description && (
-            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '4px 0 0 28px', lineHeight: 1.35 }}>
+            <p className="text-sm text-[#6C757D] mt-1 ml-7 leading-snug">
               {q.description}
             </p>
           )}
@@ -1011,6 +1129,28 @@ export default function Home() {
       bump('logo', 2);
     }
 
+    // Step 3 "What do you want?" selections directly bump the services the client asked for
+    const wantCategoryBoost: Record<string, string[]> = {
+      website: ['web', 'ecomm'],
+      social: ['smm', 'linkedin', 'infl', 'wa', 'ads'],
+      seo: ['seo', 'gmb', 'content', 'linkedin'],
+      analytics: ['logo', 'orm', 'pitch'],
+    };
+    wantCategories.forEach((catKey) => {
+      (wantCategoryBoost[catKey] || []).forEach((k) => bump(k, 1.5));
+    });
+
+    const wantSubOptionBoost: Record<string, string> = {
+      onepager: 'web', business: 'web', ecommerce: 'ecomm', custom: 'web',
+      content: 'smm', ads: 'ads', influencer: 'infl', whatsapp: 'wa',
+      seo: 'seo', gmb: 'gmb', content_mkt: 'content', linkedin: 'linkedin',
+      branding: 'logo', orm: 'orm', pitch: 'pitch',
+    };
+    Object.values(wantSubOptions).flat().forEach((optKey) => {
+      const k = wantSubOptionBoost[optKey];
+      if (k) bump(k, 2.5);
+    });
+
     const goalBoostHighest = GOAL_BOOST[goal] || {};
     const goalBoostSec = GOAL_BOOST[secondaryGoal] || {};
     const goalBoostTert = GOAL_BOOST[tertiaryGoal] || {};
@@ -1199,6 +1339,8 @@ export default function Home() {
           secondaryGoal,
           tertiaryGoal,
           businessDescription,
+          wantCategories,
+          wantSubOptions,
           tierName: tierKey.toUpperCase(),
           monthly: p.monthly,
           onetime: p.onetime,
@@ -2165,15 +2307,15 @@ export default function Home() {
           color: #166534;
         }
 
-        /* 3. High Plan - "Make it look Premium" (Executive Dark Midnight Navy, Electric Glow, Crown Badge) */
+        /* 3. High Plan - "Make it look Premium" (Deep Emerald Teal — on-theme with brand green, Crown Badge) */
         .plan-card.plan-high {
-          background: linear-gradient(160deg, #0b1329 0%, #111d38 55%, #0d1527 100%);
-          border: 2px solid #38bdf8;
-          box-shadow: 0 12px 36px -4px rgba(11, 19, 41, 0.42), 0 0 24px rgba(56, 189, 248, 0.22);
+          background: linear-gradient(160deg, #0d2b26 0%, #123a33 55%, #0a201c 100%);
+          border: 2px solid var(--green);
+          box-shadow: 0 12px 36px -4px rgba(10, 32, 28, 0.42), 0 0 24px rgba(0, 196, 154, 0.22);
           color: #f8fafc;
         }
         .plan-card.plan-high .plan-tier {
-          color: #38bdf8;
+          color: #34eab8;
           font-weight: 700;
           letter-spacing: .1em;
         }
@@ -2182,14 +2324,14 @@ export default function Home() {
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
         }
         .plan-card.plan-high .plan-tagline {
-          color: #94a3b8;
+          color: #9fc7bd;
         }
         .plan-card.plan-high .plan-price .amt {
-          color: #38bdf8;
-          text-shadow: 0 2px 10px rgba(56, 189, 248, 0.25);
+          color: #34eab8;
+          text-shadow: 0 2px 10px rgba(0, 196, 154, 0.3);
         }
         .plan-card.plan-high .plan-price .per {
-          color: #94a3b8;
+          color: #9fc7bd;
         }
         .plan-card.plan-high .plan-setup {
           color: #cbd5e1;
@@ -2205,10 +2347,10 @@ export default function Home() {
           font-weight: 600;
         }
         .plan-card.plan-high .plan-services .sv-scope {
-          color: #94a3b8;
+          color: #9fc7bd;
         }
         .plan-card.plan-high .plan-services .sv-price {
-          color: #38bdf8;
+          color: #34eab8;
           font-weight: 600;
         }
         .plan-card.plan-high .plan-why {
@@ -2218,7 +2360,7 @@ export default function Home() {
         }
         .plan-card.plan-high:hover {
           transform: translateY(-3px);
-          box-shadow: 0 16px 44px -4px rgba(11, 19, 41, 0.5), 0 0 30px rgba(56, 189, 248, 0.3);
+          box-shadow: 0 16px 44px -4px rgba(10, 32, 28, 0.5), 0 0 30px rgba(0, 196, 154, 0.3);
         }
         .plan-card.budget-match {
           border-color: var(--orange) !important;
@@ -2439,19 +2581,21 @@ export default function Home() {
         <div className="layout">
           {/* LEFT: FORM */}
           <div className="form-column">
-            {/* Section 01: Client Details (Step 1 of 3) */}
+            {/* Section 01: Client Details (Step 1 of 4) */}
             {formStep === 1 && (
-              <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <h2 style={{ margin: 0 }}><span className="num">01</span> Client details</h2>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--green-dark)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '12px' }}>
-                    Step 1 of 3
+              <div className="bg-white border-[1.5px] border-[#A0AAB2] rounded-[14px] px-6 py-[22px] shadow-[0_3px_12px_rgba(26,36,51,0.05)] box-border overflow-hidden">
+                <div className="flex justify-between items-center mb-1">
+                  <h2 className="m-0 font-serif text-[21px] flex items-center gap-2.5 text-[#1A2433]">
+                    <span className="font-mono text-[15px] text-[#2C97B7] bg-[#e8f5ee] px-2.5 py-0.5 rounded-md font-bold">01</span> Client details
+                  </h2>
+                  <span className="text-[13px] font-semibold text-[#2C97B7] bg-[#ecfdf5] px-2.5 py-1 rounded-xl">
+                    Step 1 of 4
                   </span>
                 </div>
-                <p className="hint" style={{ marginBottom: '16px' }}>Just the basics — takes 20 seconds.</p>
+                <p className="text-[15.5px] text-[#6C757D] mb-4 leading-snug">Just the basics — takes 20 seconds.</p>
 
                 {/* Render questions assigned to Page 1 with Q4 and Q5 parallel in one line */}
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="flex flex-col">
                   {/* Q1, Q2, Q3 or any questions before Q4 */}
                   {page1Questions
                     .filter(q => q.id !== 4 && q.id !== 5 && (q.displayOrder ?? q.id) < 4)
@@ -2474,33 +2618,19 @@ export default function Home() {
                 </div>
 
                 {/* Step 1 Navigation */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-                  <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
+                <div className="flex justify-between items-center mt-5 pt-4 border-t border-[#e2e8f0]">
+                  <span className="text-sm text-[#6C757D]">
                     {!isPage1Valid ? (
-                      <span style={{ color: 'var(--red)' }}>* Complete required fields to proceed</span>
+                      <span className="text-[#8B1E1E]">* Complete required fields to proceed</span>
                     ) : (
-                      <span style={{ color: 'var(--green-dark)', fontWeight: 600 }}>✓ Step 1 details complete</span>
+                      <span className="text-[#2C97B7] font-semibold">✓ Step 1 details complete</span>
                     )}
                   </span>
                   <button
                     type="button"
                     onClick={() => setFormStep(2)}
                     disabled={!isPage1Valid}
-                    className="btn"
-                    style={{
-                      background: !isPage1Valid ? '#94a3b8' : 'var(--green)',
-                      color: '#fff',
-                      padding: '10px 22px',
-                      borderRadius: '9px',
-                      fontSize: '15.5px',
-                      fontWeight: 600,
-                      border: 'none',
-                      cursor: !isPage1Valid ? 'not-allowed' : 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '7px',
-                      boxShadow: isPage1Valid ? '0 2px 8px rgba(0, 196, 154, 0.25)' : 'none'
-                    }}
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-[9px] text-[15.5px] font-semibold border-none text-white ${!isPage1Valid ? 'bg-[#94a3b8] cursor-not-allowed' : 'bg-[#00C49A] cursor-pointer shadow-[0_2px_8px_rgba(0,196,154,0.25)]'}`}
                   >
                     <span>Next</span>
                     <i className="ti ti-arrow-right"></i>
@@ -2509,42 +2639,31 @@ export default function Home() {
               </div>
             )}
 
-            {/* Section 02: Current Digital Presence (Step 2 of 3) */}
+            {/* Section 02: Current Digital Presence (Step 2 of 4) */}
             {formStep === 2 && (
-              <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <h2 style={{ margin: 0 }}><span className="num">02</span> Current digital presence</h2>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--green-dark)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '12px' }}>
-                    Step 2 of 3
+              <div className="bg-white border-[1.5px] border-[#A0AAB2] rounded-[14px] px-6 py-[22px] shadow-[0_3px_12px_rgba(26,36,51,0.05)] box-border overflow-hidden">
+                <div className="flex justify-between items-center mb-1">
+                  <h2 className="m-0 font-serif text-[21px] flex items-center gap-2.5 text-[#1A2433]">
+                    <span className="font-mono text-[15px] text-[#2C97B7] bg-[#e8f5ee] px-2.5 py-0.5 rounded-md font-bold">02</span> Current digital presence
+                  </h2>
+                  <span className="text-[13px] font-semibold text-[#2C97B7] bg-[#ecfdf5] px-2.5 py-1 rounded-xl">
+                    Step 2 of 4
                   </span>
                 </div>
 
-                <p className="hint" style={{ marginBottom: '16px' }}>Apke Pass Avi kya sab hai.</p>
+                <p className="text-[15.5px] text-[#6C757D] mb-4 leading-snug">What&apos;s already in place (Abhi kya kya maujood hai)?</p>
 
                 {/* Render questions assigned to Page 2 in displayOrder */}
-                <div className="presence-checklist">
+                <div className="flex flex-col gap-2.5 mt-1.5">
                   {page2Questions.map((q) => renderQuestion(q))}
                 </div>
 
                 {/* Step 2 Navigation */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                <div className="flex justify-between items-center mt-5 pt-4 border-t border-[#e2e8f0]">
                   <button
                     type="button"
                     onClick={() => setFormStep(1)}
-                    className="btn"
-                    style={{
-                      background: '#f1f5f9',
-                      color: '#475569',
-                      padding: '10px 18px',
-                      borderRadius: '9px',
-                      fontSize: '15px',
-                      fontWeight: 600,
-                      border: '1.5px solid #cbd5e1',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '7px'
-                    }}
+                    className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-[9px] text-[15px] font-semibold border-[1.5px] border-[#cbd5e1] bg-[#f1f5f9] text-[#475569] cursor-pointer"
                   >
                     <i className="ti ti-arrow-left"></i>
                     <span>Back</span>
@@ -2554,21 +2673,7 @@ export default function Home() {
                     type="button"
                     onClick={() => setFormStep(3)}
                     disabled={!isPage2Valid}
-                    className="btn"
-                    style={{
-                      background: !isPage2Valid ? '#94a3b8' : 'var(--green)',
-                      color: '#fff',
-                      padding: '10px 22px',
-                      borderRadius: '9px',
-                      fontSize: '15.5px',
-                      fontWeight: 600,
-                      border: 'none',
-                      cursor: !isPage2Valid ? 'not-allowed' : 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '7px',
-                      boxShadow: isPage2Valid ? '0 2px 8px rgba(0, 196, 154, 0.25)' : 'none'
-                    }}
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-[9px] text-[15.5px] font-semibold border-none text-white ${!isPage2Valid ? 'bg-[#94a3b8] cursor-not-allowed' : 'bg-[#00C49A] cursor-pointer shadow-[0_2px_8px_rgba(0,196,154,0.25)]'}`}
                   >
                     <span>Next</span>
                     <i className="ti ti-arrow-right"></i>
@@ -2577,8 +2682,105 @@ export default function Home() {
               </div>
             )}
 
-            {/* Section 03: Requirements & Goals (Step 3 of 3 - Paginated Sub-steps) */}
-            {formStep === 3 && (() => {
+            {/* Section 03: What Do You Want? (Step 3 of 4) — service interest picker */}
+            {formStep === 3 && (
+              <div className="bg-white border-[1.5px] border-[#A0AAB2] rounded-[14px] px-6 py-[22px] shadow-[0_3px_12px_rgba(26,36,51,0.05)] box-border overflow-hidden">
+                <div className="flex justify-between items-center mb-1">
+                  <h2 className="m-0 font-serif text-[21px] flex items-center gap-2.5 text-[#1A2433]">
+                    <span className="font-mono text-[15px] text-[#2C97B7] bg-[#e8f5ee] px-2.5 py-0.5 rounded-md font-bold">03</span> What do you want?
+                  </h2>
+                  <span className="text-[13px] font-semibold text-[#2C97B7] bg-[#ecfdf5] px-2.5 py-1 rounded-xl">
+                    Step 3 of 4
+                  </span>
+                </div>
+
+                <p className="text-[15.5px] text-[#6C757D] mb-4 leading-snug">Select the services the client is interested in (optional — pick any that apply).</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {WANT_CATEGORIES.map((cat) => {
+                    const isOn = wantCategories.includes(cat.key);
+                    const selectedSubs = wantSubOptions[cat.key] || [];
+                    return (
+                      <div
+                        key={cat.key}
+                        className={`rounded-xl border-[1.5px] p-3.5 transition-colors ${isOn ? 'bg-[#ecfdf5] border-[#00C49A]' : 'bg-[#f8fafc] border-[#e2e8f0] hover:border-[#cbd5e1]'}`}
+                      >
+                        <label className="cursor-pointer select-none" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                          <input
+                            type="checkbox"
+                            checked={isOn}
+                            onChange={() => handleWantCategoryToggle(cat.key)}
+                            className="w-[19px] h-[19px] mt-0.5 accent-[#00C49A] cursor-pointer shrink-0"
+                          />
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1.5 font-bold text-[15.5px] text-[#1A2433]">
+                              <i className={`ti ${cat.icon} text-[#2C97B7] text-base`}></i>
+                              {cat.label}
+                            </span>
+                            <span className="block text-[13px] text-[#6C757D] mt-0.5">{cat.description}</span>
+                          </span>
+                        </label>
+
+                        {isOn && (
+                          <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-[#d1fae5]">
+                            {cat.options.map((opt) => {
+                              const selected = selectedSubs.includes(opt.key);
+                              const price = servicePriceByName[opt.serviceName];
+                              const priceLabel = price
+                                ? (price.max > price.min ? `${fmt(price.min)} – ${fmt(price.max)}` : `From ${fmt(price.min)}`)
+                                : null;
+                              return (
+                                <button
+                                  key={opt.key}
+                                  type="button"
+                                  onClick={() => handleWantSubOptionToggle(cat.key, opt.key)}
+                                  className={`w-full text-left text-[13.5px] font-medium px-3 py-2 rounded-lg border-[1.5px] transition-colors cursor-pointer ${selected ? 'bg-[#00C49A] border-[#00C49A] text-white' : 'bg-white border-[#A0AAB2] text-[#1A2433] hover:border-[#2C97B7]'}`}
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}
+                                >
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                                    {selected ? <i className="ti ti-square-check-filled"></i> : <i className="ti ti-square"></i>}
+                                    {opt.label}
+                                  </span>
+                                  {priceLabel && (
+                                    <span className={`text-[12px] font-semibold whitespace-nowrap ${selected ? 'text-white/90' : 'text-[#6C757D]'}`}>
+                                      {priceLabel}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Step 3 Navigation */}
+                <div className="flex justify-between items-center mt-5 pt-4 border-t border-[#e2e8f0]">
+                  <button
+                    type="button"
+                    onClick={() => setFormStep(2)}
+                    className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-[9px] text-[15px] font-semibold border-[1.5px] border-[#cbd5e1] bg-[#f1f5f9] text-[#475569] cursor-pointer"
+                  >
+                    <i className="ti ti-arrow-left"></i>
+                    <span>Back</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormStep(4)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[9px] text-[15.5px] font-semibold border-none text-white bg-[#00C49A] cursor-pointer shadow-[0_2px_8px_rgba(0,196,154,0.25)]"
+                  >
+                    <span>Next</span>
+                    <i className="ti ti-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Section 04: Requirements & Goals (Step 4 of 4 - Paginated Sub-steps) */}
+            {formStep === 4 && (() => {
               const qPrimary = page3Questions.find(q => q.id === 11) || questions.find(q => q.id === 11);
               const qSecondary = page3Questions.find(q => q.id === 12) || questions.find(q => q.id === 12);
               const qTertiary = page3Questions.find(q => q.id === 13) || questions.find(q => q.id === 13);
@@ -2612,9 +2814,9 @@ export default function Home() {
               return (
                 <div className="card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <h2 style={{ margin: 0 }}><span className="num">03</span> Requirements & Goals</h2>
+                    <h2 style={{ margin: 0 }}><span className="num">04</span> Requirements & Goals</h2>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: '#92400e', background: '#fef3c7', padding: '3px 10px', borderRadius: '12px' }}>
-                      Step 3 of 3 · Goal {requirementStep} of 4
+                      Step 4 of 4
                     </span>
                   </div>
                   <p className="hint" style={{ marginBottom: '16px' }}>Configure marketing objectives step-by-step.</p>
@@ -2663,7 +2865,7 @@ export default function Home() {
                       <div className="req-step-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
                         <button
                           type="button"
-                          onClick={() => setFormStep(2)}
+                          onClick={() => setFormStep(3)}
                           className="req-nav-btn prev"
                           style={{ padding: '9px 18px', fontSize: '14.5px' }}
                         >
@@ -2878,10 +3080,13 @@ export default function Home() {
                           type="button"
                           disabled={!isFormValid || isAnalyzing}
                           onClick={handleAnalyzeNow}
-                          className="btn"
                           style={{
                             flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'center',
+                            textAlign: 'center',
+                            whiteSpace: 'nowrap',
                             padding: '13px 24px',
                             fontSize: '16.5px',
                             fontWeight: 700,
@@ -2898,8 +3103,8 @@ export default function Home() {
                         >
                           {isAnalyzing ? (
                             <>
-                              <span className="spinner-mini" style={{ marginRight: '6px' }}></span>
-                              Generating Quotation...
+                              <span className="spinner-mini"></span>
+                              Generating...
                             </>
                           ) : (
                             <>
@@ -2925,16 +3130,17 @@ export default function Home() {
                       borderRadius: '10px',
                       border: '1px solid #e2e8f0',
                       display: 'flex',
-                      flexWrap: 'wrap',
-                      alignItems: 'center',
+                      flexDirection: 'column',
                       gap: '8px',
                       fontSize: '13.5px',
                       marginTop: '16px'
                     }}
                   >
-                    <span style={{ fontWeight: 600, color: 'var(--ink)', marginRight: '2px' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--ink)' }}>
                       Requirements:
                     </span>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
 
                     {/* Primary Slot */}
                     <div
@@ -3107,6 +3313,7 @@ export default function Home() {
                         <span>{fmt(statedBudget)}</span>
                       </div>
                     )}
+                    </div>
                   </div>
                 </div>
               );

@@ -332,6 +332,7 @@ Recommend services ONLY from the AVAILABLE SERVICES list.
 
 Rules:
 - Every service ID in SERVICES REQUIRED BY BUSINESS RULES MUST be included.
+- If 'services_of_interest' is present in CUSTOMER ANSWERS, it lists the specific service categories the customer explicitly asked for (e.g. "Website (E-commerce / Online Store)", "SEO + Marketing (Google Business Profile)"). Treat these as strong, explicit signals — you MUST prioritize matching AVAILABLE SERVICES for every category/sub-option listed there.
 - You may add other services only when clearly justified by the customer's answers.
 - NEVER invent a service or service ID.
 - NEVER recommend a service that does not exist in AVAILABLE SERVICES.
