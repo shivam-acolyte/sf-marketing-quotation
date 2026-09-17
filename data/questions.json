@@ -33,7 +33,7 @@
   },
   {
     "id": 3,
-    "question": "Aapka business kya hai",
+    "question": "Business Description (Business kya karta hai)",
     "description": null,
     "questionType": "text",
     "required": false,
@@ -49,8 +49,8 @@
   },
   {
     "id": 4,
-    "question": "Industry / Nature of business",
-    "description": "Select the closest matching business domain",
+    "question": "Industry (Business ki category)",
+    "description": "Choose the option that best fits your business",
     "questionType": "single_choice",
     "options": [
       "Retail / E-commerce",
@@ -71,14 +71,14 @@
   },
   {
     "id": 5,
-    "question": "Business Age",
-    "description": "Apka business kitne saal purana hai?",
+    "question": "Business Age (Business kitna purana hai)",
+    "description": "How long has the business been running?",
     "questionType": "single_choice",
     "options": [
-      "< 1 yr (Startup)",
-      "1 – 3 yrs (Growing)",
-      "3 – 5 yrs (Established)",
-      "5+ yrs (Well-established)"
+      "0-1 yrs (New Business)",
+      "1-3 yrs (Growing)",
+      "3-5 yrs (Established)",
+      "5+ yrs (Well Established)"
     ],
     "required": true,
     "page": 1,
@@ -92,8 +92,8 @@
   },
   {
     "id": 6,
-    "question": "Salesperson name (Team member handling client consultation)",
-    "description": null,
+    "question": "Salesperson Name (Aapka naam)",
+    "description": "Team member handling this client",
     "questionType": "text",
     "required": true,
     "page": 1,
@@ -109,7 +109,7 @@
   {
     "id": 7,
     "question": "Website",
-    "description": "Do they have an active website?",
+    "description": "Does the business already have a live website?",
     "questionType": "yes_no",
     "options": [
       "Yes",
@@ -127,7 +127,7 @@
   {
     "id": 8,
     "question": "Social Media",
-    "description": "Active profiles on Instagram / Facebook / LinkedIn?",
+    "description": "Active on platforms like Instagram, Facebook, or LinkedIn?",
     "questionType": "yes_no",
     "options": [
       "Yes",
@@ -145,7 +145,7 @@
   {
     "id": 9,
     "question": "Google Business Profile",
-    "description": "Google Maps listing verified & active?",
+    "description": "Is the business listed and verified on Google Maps?",
     "questionType": "yes_no",
     "options": [
       "Yes",
@@ -163,8 +163,8 @@
   },
   {
     "id": 10,
-    "question": "None of these — Starting fresh from scratch",
-    "description": "No existing online digital channels",
+    "question": "Starting From Scratch (Bilkul shuru se)",
+    "description": "No website, social media, or Google listing yet — we'll set everything up for you from zero.",
     "questionType": "yes_no",
     "options": [
       "Yes",

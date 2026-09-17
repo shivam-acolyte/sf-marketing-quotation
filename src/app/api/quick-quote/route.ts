@@ -132,7 +132,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { clientName, clientCity, salesperson, industry, stage, goal, secondaryGoal, tertiaryGoal, businessDescription, tierName, monthly, items } = body;
+    const { clientName, clientCity, salesperson, industry, stage, goal, secondaryGoal, tertiaryGoal, businessDescription, wantCategories, wantSubOptions, tierName, monthly, items } = body;
 
     if (!clientName) {
       return NextResponse.json({ error: 'Missing clientName' }, { status: 400 });
@@ -160,12 +160,30 @@ export async function PUT(request: Request) {
       include: { serviceRules: true },
     });
 
+    // Step 3 "What do you want?" selections — readable labels for the AI prompt (kept in sync with WANT_CATEGORIES in src/app/page.tsx)
+    const WANT_LABELS: Record<string, string> = {
+      website: 'Website', social: 'Social Media', seo: 'SEO + Marketing', analytics: 'Business Analytics',
+      onepager: '1-Page Website', business: '5-Page Business Website', ecommerce: 'E-commerce / Online Store', custom: 'Custom / Advanced Website',
+      content: 'Content & Posting', ads: 'Paid Ads (Meta / Google)', influencer: 'Influencer Marketing', whatsapp: 'WhatsApp Marketing',
+      gmb: 'Google Business Profile', content_mkt: 'Content Marketing', linkedin: 'LinkedIn / B2B Marketing',
+      reporting: 'Advanced Analytics & Reporting', branding: 'Logo & Brand Identity', orm: 'Online Reputation Management', pitch: 'Pitch Deck / Business PPT',
+    };
+    const servicesOfInterest: string[] = Array.isArray(wantCategories)
+      ? wantCategories.map((catKey: string) => {
+          const subs = (wantSubOptions?.[catKey] || []) as string[];
+          const subLabels = subs.map((s) => WANT_LABELS[s] || s).join(', ');
+          const catLabel = WANT_LABELS[catKey] || catKey;
+          return subLabels ? `${catLabel} (${subLabels})` : catLabel;
+        })
+      : [];
+
     const answersForAI = {
       '1': clientName,
       '2': industry,
       '3': stage === 'new' ? 'Micro (1-5 employees)' : stage === 'growing' ? 'Small (6-20 employees)' : 'Large (100+ employees)',
       '7': [goal, secondaryGoal !== 'none' && secondaryGoal, tertiaryGoal !== 'none' && tertiaryGoal].filter(Boolean) as string[],
       'business_description': businessDescription || '',
+      'services_of_interest': servicesOfInterest,
     };
 
     const ruleRecommended = getRecommendedServices(answersForAI, activeServices);
@@ -187,6 +205,8 @@ export async function PUT(request: Request) {
           secondaryGoal: secondaryGoal || 'none',
           tertiaryGoal: tertiaryGoal || 'none',
           businessDescription: businessDescription || '',
+          wantCategories: wantCategories || [],
+          wantSubOptions: wantSubOptions || {},
           tierName,
         },
         aiAnalysis: aiResult as any,
